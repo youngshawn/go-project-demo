@@ -67,11 +67,38 @@ func GetCoursesByTeacherId(ctx *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		ctx.Writer.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(ctx.Writer).Encode("Error: Failed to get courses")
+		json.NewEncoder(ctx.Writer).Encode("Error: Failed to get courses by teacher")
 		return
 	}
 	ctx.Writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(ctx.Writer).Encode(courses)
+}
+
+func GetTeacherByCourseId(ctx *gin.Context) {
+	ctx.Writer.Header().Set("Content-Type", "application/json")
+
+	courseIdParam := ctx.Param("id")
+	courseId, err := strconv.ParseUint(courseIdParam, 0, 64)
+	if err != nil {
+		log.Printf("The parameter <id> is mailformat: %s\n", courseIdParam)
+		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(ctx.Writer).Encode("Error: Course id is malformat")
+		return
+	}
+	teacher, err := models.GetTeacherByCourseId(uint(courseId))
+	if err != nil {
+		log.Println(err.Error())
+		ctx.Writer.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(ctx.Writer).Encode("Error: Failed to get teacher by course")
+		return
+	}
+	if teacher == nil {
+		ctx.Writer.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(ctx.Writer).Encode("Error: Teacher not found")
+		return
+	}
+	ctx.Writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(ctx.Writer).Encode(teacher)
 }
 
 func CreateCourse(ctx *gin.Context) {

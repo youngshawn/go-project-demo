@@ -51,6 +51,26 @@ func GetCoursesByTeacherId(Id uint) ([]Course, error) {
 	return courses, result.Error
 }
 
+func GetTeacherByCourseId(Id uint) (*Teacher, error) {
+	var course Course
+	result := db.Find(&course, Id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected != 1 {
+		return nil, nil
+	}
+	var teacher Teacher
+	err := db.Model(&course).Association("Teacher").Find(&teacher)
+	if err != nil {
+		return nil, err
+	}
+	if teacher.ID == 0 {
+		return nil, nil
+	}
+	return &teacher, nil
+}
+
 func GetCourseById(Id uint) (*Course, error) {
 	var course Course
 	result := db.Find(&course, Id)

@@ -13,5 +13,7 @@ func installCourseRouters(router *gin.Engine) {
 		course.GET("/:id", controllers.GetCourseById)
 		course.PUT("/:id", controllers.UpdateCourseById)
 		course.DELETE("/:id", controllers.DeleteCourseById)
+
+		course.GET("/:id/teacher", controllers.GetTeacherByCourseId)
 	}
 }
