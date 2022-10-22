@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -17,9 +16,7 @@ const (
 	mysql_options  = "charset=utf8mb4&parseTime=True&loc=Local"
 )
 
-var Db *gorm.DB
-
-func init() {
+func connect_mysql() *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", mysql_username,
 		mysql_password, mysql_address, mysql_dbname, mysql_options)
 
@@ -27,14 +24,5 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Fatal(err)
-	}
-	// setup connection pool
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
-	sqlDB.SetConnMaxIdleTime(time.Minute * 10)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+	return db
 }

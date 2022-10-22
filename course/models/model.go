@@ -8,6 +8,7 @@ import (
 var db *gorm.DB
 
 func init() {
-	db = config.Db
+	db = config.GetDB()
+	//db.AutoMigrate(&Course{})
 	db.AutoMigrate(&Course{}, &Teacher{})
 }
