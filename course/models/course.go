@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/go-redis/cache/v9"
 	"gorm.io/gorm"
 )
 
@@ -41,8 +42,21 @@ func (c *Course) UpdateCourse() (*Course, error) {
 
 func GetAllCourses() ([]Course, error) {
 	var courses []Course
-	result := db.Find(&courses)
-	return courses, result.Error
+
+	err := redisCache.Once(&cache.Item{
+		Key:            "/course/",
+		Value:          &courses,
+		SkipLocalCache: false,
+		Do: func(i *cache.Item) (interface{}, error) {
+			//var cs []Course
+			//result := db.Find(&cs)
+			//return &cs, result.Error
+			result := db.Find(i.Value)
+			return i.Value, result.Error
+		},
+	})
+
+	return courses, err
 }
 
 func GetCoursesByTeacherId(Id uint) ([]Course, error) {

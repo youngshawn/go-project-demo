@@ -26,7 +26,7 @@ func init() {
 	// setup connection pool
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
-	sqlDB.SetConnMaxIdleTime(time.Minute * 10)
+	sqlDB.SetConnMaxIdleTime(time.Minute * 5)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 }
 
