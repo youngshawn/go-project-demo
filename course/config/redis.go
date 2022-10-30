@@ -16,6 +16,11 @@ const (
 
 var redisCache *cache.Cache
 
+// Dynamic Config
+var EnableNullResultCache bool = false
+var EnableLocalCache bool = false
+var CacheTTL time.Duration = time.Hour
+
 func init() {
 	rdb := connect_redis()
 	redisCache = cache.New(&cache.Options{

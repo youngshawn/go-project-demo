@@ -38,15 +38,9 @@ func (t *Teacher) UpdateTeacher() (*Teacher, error) {
 	return &teacher, nil
 }
 
-func GetAllTeachers() ([]Teacher, error) {
-	var teachers []Teacher
-	result := db.Find(&teachers)
-	return teachers, result.Error
-}
-
-func GetTeacherById(Id uint) (*Teacher, error) {
+func DeleteTeacherById(Id uint) (*Teacher, error) {
 	var teacher Teacher
-	result := db.Find(&teacher, Id)
+	result := db.Delete(&teacher, Id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -56,9 +50,15 @@ func GetTeacherById(Id uint) (*Teacher, error) {
 	return &teacher, nil
 }
 
-func DeleteTeacherById(Id uint) (*Teacher, error) {
+func GetAllTeachers() ([]Teacher, error) {
+	var teachers []Teacher
+	result := db.Find(&teachers)
+	return teachers, result.Error
+}
+
+func GetTeacherById(Id uint) (*Teacher, error) {
 	var teacher Teacher
-	result := db.Delete(&teacher, Id)
+	result := db.Find(&teacher, Id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
