@@ -17,7 +17,7 @@ const (
 var redisCache *cache.Cache
 
 // Dynamic Config
-var EnableNullResultCache bool = false
+var EnableNullResultCache bool = true
 var EnableLocalCache bool = false
 var CacheTTL time.Duration = time.Hour
 

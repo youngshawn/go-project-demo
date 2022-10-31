@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -11,8 +10,6 @@ import (
 	"github.com/youngshawn/go-project-demo/course/config"
 	"gorm.io/gorm"
 )
-
-var ErrorObjectNotFound = errors.New("ObjectNotFound")
 
 // Course belongs to Teacher
 type Course struct {
