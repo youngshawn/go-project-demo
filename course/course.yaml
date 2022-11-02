@@ -1,18 +1,19 @@
 database:
-  type: sqlite3
+  type: sqlite
   sqlite:
-    dbname: course3.db
+    dbname: course.db
   mysql:
-    username: user
-	  password: pass
-	  address : 127.0.0.1:3307
-	  dbname  : course3
-	  options : charset=utf8mb4&parseTime=True&loc=Local3
+    username: username
+    password: password
+    address : 127.0.0.1:3306
+    dbname  : course
+    options : charset=utf8mb4&parseTime=True&loc=Local
 
 cache:
   redis:
-	  address  : 127.0.0.1:6378
-	  db       : 3
-  enable-null-result-cache: 0
-  enable-local-cache: 1
-  cache-ttl-in-seconds: 1800
+    address: 127.0.0.1:6379
+    db     : 0
+  enable-null-result-cache: true
+  enable-local-cache: false
+  cache-ttl-in-seconds: 3600
+  

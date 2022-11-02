@@ -7,11 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/youngshawn/go-project-demo/course/config"
-	"github.com/youngshawn/go-project-demo/course/routes"
 )
 
 var cfgFile string
@@ -29,12 +27,12 @@ var rootCmd = &cobra.Command{
 		}
 		fmt.Println(string(out))
 
-		router := gin.Default()
+		/*router := gin.Default()
 		router.SetTrustedProxies([]string{"127.0.0.1"})
 
 		routes.InstallRoutes(router)
 
-		log.Fatal(router.Run(":3000"))
+		log.Fatal(router.Run(":3000"))*/
 	},
 }
 
@@ -51,6 +49,9 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.course.yaml)")
+
+	// set pflags from config.config struct
+	config.ExposeConfigAsPFlags(rootCmd)
 
 	// bind pflags to viper
 	viper.BindPFlags(rootCmd.PersistentFlags())
@@ -79,8 +80,9 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// load config-file into viper
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	fmt.Println("Using config file:", viper.ConfigFileUsed())
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatal(err)
 	}
 
 	// Unmarshal
