@@ -1,13 +1,16 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/youngshawn/go-project-demo/course/config"
 	"github.com/youngshawn/go-project-demo/course/routes"
 )
 
@@ -19,6 +22,13 @@ var rootCmd = &cobra.Command{
 	Short: "A Course Management system",
 	Long:  `A Course Management system`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		out, err := json.MarshalIndent(&config.Config, "", "    ")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(out))
+
 		router := gin.Default()
 		router.SetTrustedProxies([]string{"127.0.0.1"})
 
@@ -40,9 +50,11 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.course.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.course.yaml)")
 
-	//rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.course.yaml)")
+	// bind pflags to viper
+	viper.BindPFlags(rootCmd.PersistentFlags())
+
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -61,14 +73,18 @@ func initConfig() {
 		viper.SetConfigName(".course")
 	}
 
-	//pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
-	//pflag.Parse()
-	//viper.BindPFlags(pflag.CommandLine)
-
+	// load env into viper
 	viper.SetEnvPrefix("COURSE")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv() // read in environment variables that match
 
+	// load config-file into viper
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+
+	// Unmarshal
+	if err := viper.Unmarshal(&config.Config); err != nil {
+		log.Fatal(err)
 	}
 }
