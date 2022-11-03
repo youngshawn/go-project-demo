@@ -9,9 +9,15 @@ import (
 
 var db *gorm.DB
 
-const db_type = "sqlite"
+func DatabaseConnectAndSetup() {
 
-func init() {
+	// get configurations
+	db_type := Config.Database.Type
+	maxIdleConns := Config.Database.Pool.MaxIdleConns
+	maxOpenConns := Config.Database.Pool.MaxOpenConns
+	connMaxIdleTime := Config.Database.Pool.ConnMaxIdleTime
+	connMaxLifetime := Config.Database.Pool.ConnMaxLifetime
+
 	// connect to database
 	if db_type == "mysql" {
 		db = connect_mysql()
@@ -24,10 +30,10 @@ func init() {
 		log.Fatal(err)
 	}
 	// setup connection pool
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
-	sqlDB.SetConnMaxIdleTime(time.Minute * 5)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+	sqlDB.SetMaxIdleConns(int(maxIdleConns))
+	sqlDB.SetMaxOpenConns(int(maxOpenConns))
+	sqlDB.SetConnMaxIdleTime(time.Second * time.Duration(connMaxIdleTime))
+	sqlDB.SetConnMaxLifetime(time.Second * time.Duration(connMaxLifetime))
 }
 
 func GetDB() *gorm.DB {

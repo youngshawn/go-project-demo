@@ -2,26 +2,20 @@ package config
 
 import (
 	"context"
+	"log"
 	"time"
 
 	cache "github.com/go-redis/cache/v9"
 	redis "github.com/go-redis/redis/v9"
 )
 
-const (
-	redis_address  = "127.0.0.1:6379"
-	redis_password = ""
-	redis_db       = 0
-)
-
 var redisCache *cache.Cache
+var EnableNullResultCache bool
+var EnableLocalCache bool
+var CacheTTL time.Duration
 
-// Dynamic Config
-var EnableNullResultCache bool = true
-var EnableLocalCache bool = false
-var CacheTTL time.Duration = time.Hour
+func CacheConnectAndSetup() {
 
-func init() {
 	rdb := connect_redis()
 	redisCache = cache.New(&cache.Options{
 		Redis:      rdb,
@@ -30,10 +24,19 @@ func init() {
 }
 
 func connect_redis() *redis.Client {
+
+	// get configurations
+	EnableNullResultCache = Config.Cache.EnableNullResultCache
+	EnableLocalCache = Config.Cache.EnableLocalCache
+	CacheTTL = time.Second * time.Duration(Config.Cache.CacheTTL)
+	redis_address := Config.Cache.Redis.Address
+	redis_password := Config.Cache.Redis.Password
+	redis_db := Config.Cache.Redis.DBindex
+
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     redis_address,
 		Password: redis_password,
-		DB:       redis_db,
+		DB:       int(redis_db),
 
 		PoolSize:              100,
 		PoolTimeout:           time.Second * 10,
@@ -48,7 +51,7 @@ func connect_redis() *redis.Client {
 	})
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	return rdb

@@ -7,9 +7,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/youngshawn/go-project-demo/course/config"
+	"github.com/youngshawn/go-project-demo/course/models"
+	"github.com/youngshawn/go-project-demo/course/routes"
 )
 
 var cfgFile string
@@ -21,18 +24,26 @@ var rootCmd = &cobra.Command{
 	Long:  `A Course Management system`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// viper
 		out, err := json.MarshalIndent(&config.Config, "", "    ")
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 		fmt.Println(string(out))
 
-		/*router := gin.Default()
+		// get configurations
+		address := config.Config.Listen
+
+		config.DatabaseConnectAndSetup()
+		config.CacheConnectAndSetup()
+		models.ModelInit()
+
+		router := gin.Default()
 		router.SetTrustedProxies([]string{"127.0.0.1"})
 
 		routes.InstallRoutes(router)
 
-		log.Fatal(router.Run(":3000"))*/
+		log.Fatal(router.Run(address))
 	},
 }
 
@@ -77,13 +88,15 @@ func initConfig() {
 	// load env into viper
 	viper.SetEnvPrefix("COURSE")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// load config-file into viper
-	fmt.Println("Using config file:", viper.ConfigFileUsed())
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Using config file:", viper.ConfigFileUsed())
 
 	// Unmarshal
 	if err := viper.Unmarshal(&config.Config); err != nil {

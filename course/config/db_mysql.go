@@ -8,15 +8,15 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
-	mysql_username = "user"
-	mysql_password = "pass"
-	mysql_address  = "127.0.0.1:3306"
-	mysql_dbname   = "dbname"
-	mysql_options  = "charset=utf8mb4&parseTime=True&loc=Local"
-)
-
 func connect_mysql() *gorm.DB {
+
+	// get configurations
+	mysql_username := Config.Database.MySQL.Username
+	mysql_password := Config.Database.MySQL.Password
+	mysql_address := Config.Database.MySQL.Address
+	mysql_dbname := Config.Database.MySQL.DBname
+	mysql_options := Config.Database.MySQL.Options
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", mysql_username,
 		mysql_password, mysql_address, mysql_dbname, mysql_options)
 

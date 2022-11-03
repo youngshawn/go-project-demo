@@ -1,3 +1,5 @@
+listen: :3000
+
 database:
   type: sqlite
   sqlite:
@@ -8,12 +10,17 @@ database:
     address : 127.0.0.1:3306
     dbname  : course
     options : charset=utf8mb4&parseTime=True&loc=Local
+  pool:
+    max-idle-conns: 10
+    max-open-conns: 100
+    conn-max-idle-time: 300 
+    conn-max-life-time: 3600
 
 cache:
   redis:
     address: 127.0.0.1:6379
     db     : 0
-  enable-null-result-cache: true
+  enable-null-result-cache: true 
   enable-local-cache: false
-  cache-ttl-in-seconds: 3600
+  cache-ttl: 3600
   

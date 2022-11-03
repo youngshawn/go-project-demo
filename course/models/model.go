@@ -12,7 +12,7 @@ var db *gorm.DB
 var redisCache *cache.Cache
 var ErrorObjectNotFound = errors.New("ObjectNotFound")
 
-func init() {
+func ModelInit() {
 	db = config.GetDB()
 	//db.AutoMigrate(&Course{})
 	db.AutoMigrate(&Course{}, &Teacher{})
