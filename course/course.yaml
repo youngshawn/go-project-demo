@@ -13,14 +13,16 @@ database:
   pool:
     max-idle-conns: 10
     max-open-conns: 100
-    conn-max-idle-time: 300 
+    conn-max-idle-time: 300
     conn-max-life-time: 3600
 
 cache:
+  enable-redis: true
+  enable-local-cache: true
+  enable-null-result-cache: true
+  cache-ttl: 3600
   redis:
     address: 127.0.0.1:6379
+    password: ""
     db     : 0
-  enable-null-result-cache: true 
-  enable-local-cache: false
-  cache-ttl: 3600
   

@@ -20,22 +20,22 @@ type config struct {
 			Options  string
 		}
 		Pool struct {
-			MaxIdleConns    uint `mapstructure:"database.pool.max-idle-conns"`
-			MaxOpenConns    uint `mapstructure:"database.pool.max-open-conns"`
-			ConnMaxIdleTime uint `mapstructure:"database.pool.conn-max-idle-time"`
-			ConnMaxLifetime uint `mapstructure:"database.pool.conn-max-life-time"`
+			MaxIdleConns    uint `mapstructure:"max-idle-conns"`
+			MaxOpenConns    uint `mapstructure:"max-open-conns"`
+			ConnMaxIdleTime uint `mapstructure:"conn-max-idle-time"`
+			ConnMaxLifetime uint `mapstructure:"conn-max-life-time"`
 		}
 	}
 	Cache struct {
-		Enable bool // TODO
-		Redis  struct {
+		EnableRedis           bool `mapstructure:"enable-redis"`
+		EnableLocalCache      bool `mapstructure:"enable-local-cache"`
+		EnableNullResultCache bool `mapstructure:"enable-null-result-cache"`
+		CacheTTL              uint `mapstructure:"cache-ttl"`
+		Redis                 struct {
 			Address  string
 			Password string
-			DBindex  uint `mapstructure:"cache.redis.db"`
+			DBindex  uint `mapstructure:"db"`
 		}
-		EnableNullResultCache bool `mapstructure:"cache.enable-null-result-cache"`
-		EnableLocalCache      bool `mapstructure:"cache.enable-local-cache"`
-		CacheTTL              uint `mapstructure:"cache.cache-ttl"`
 	}
 }
 
@@ -55,12 +55,12 @@ func init() {
 	viper.SetDefault("database.pool.max-open-conns", 100)
 	viper.SetDefault("database.pool.conn-max-idle-time", 300)
 	viper.SetDefault("database.pool.conn-max-life-time", 3600)
-	viper.SetDefault("cache.enable", true)
+	viper.SetDefault("cache.enable-redis", true)
+	viper.SetDefault("cache.enable-local-cache", true)
 	viper.SetDefault("cache.enable-null-result-cache", true)
-	viper.SetDefault("cache.enable-local-cache", false)
 	viper.SetDefault("cache.cache-ttl", 3600)
 	viper.SetDefault("cache.redis.address", "127.0.0.1:6379")
-	viper.SetDefault("cache.redis.address", "")
+	viper.SetDefault("cache.redis.password", "")
 	viper.SetDefault("cache.redis.db", 0)
 }
 
@@ -78,9 +78,9 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags.Uint("database.pool.max-open-conns", 0, "database connection pool max-open-conns (default is 100)")
 	pflags.Uint("database.pool.conn-max-idle-time", 0, "database connection pool conn-max-idle-time in seconds (default is 300s)")
 	pflags.Uint("database.pool.conn-max-life-time", 0, "database connection pool conn-max-life-time in seconds (default is 3600s)")
-	//pflags.String("cache.enable", "", "cache enable (default is true)")  //TODO
+	pflags.Bool("cache.enable-redis", false, "enable redis (default is true)")
+	pflags.Bool("cache.enable-local-cache", false, "enable local cache (default is true)")
 	pflags.Bool("cache.enable-null-result-cache", false, "enable null-result cache (default is true)")
-	pflags.Bool("cache.enable-local-cache", false, "enable local cache (default is false)")
 	pflags.Uint("cache.cache-ttl", 0, "cache ttl in seconds (default is 3600)")
 	pflags.String("cache.redis.address", "", "redis address (default is '127.0.0.1:6379')")
 	pflags.String("cache.redis.password", "", "redis password (default is '')")

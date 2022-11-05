@@ -25,24 +25,34 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// viper
-		out, err := json.MarshalIndent(&config.Config, "", "    ")
+		/*out1, err := json.MarshalIndent(viper.AllKeys(), "", "    ")
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(string(out))
+		fmt.Println(string(out1))*/
+
+		out2, err := json.MarshalIndent(&config.Config, "", "    ")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(string(out2))
+
+		//os.Exit(1)
 
 		// get configurations
 		address := config.Config.Listen
 
+		// init database and cache
 		config.DatabaseConnectAndSetup()
 		config.CacheConnectAndSetup()
 		models.ModelInit()
 
+		// setup gin server
 		router := gin.Default()
 		router.SetTrustedProxies([]string{"127.0.0.1"})
-
 		routes.InstallRoutes(router)
 
+		// start gin server
 		log.Fatal(router.Run(address))
 	},
 }
@@ -87,8 +97,7 @@ func initConfig() {
 
 	// load env into viper
 	viper.SetEnvPrefix("COURSE")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
 	viper.AutomaticEnv() // read in environment variables that match
 

@@ -16,22 +16,37 @@ var CacheTTL time.Duration
 
 func CacheConnectAndSetup() {
 
-	rdb := connect_redis()
-	redisCache = cache.New(&cache.Options{
-		Redis:      rdb,
-		LocalCache: cache.NewTinyLFU(1000, time.Minute),
-	})
+	// get configurations
+	EnableLocalCache = Config.Cache.EnableLocalCache
+	EnableNullResultCache = Config.Cache.EnableNullResultCache
+	CacheTTL = time.Second * time.Duration(Config.Cache.CacheTTL)
+
+	enable_redis := Config.Cache.EnableRedis
+
+	if enable_redis == true {
+		rdb := connect_redis()
+		redisCache = cache.New(&cache.Options{
+			Redis:      rdb,
+			LocalCache: cache.NewTinyLFU(1000, time.Minute),
+		})
+	} else {
+		redisCache = cache.New(&cache.Options{
+			Redis:      nil,
+			LocalCache: cache.NewTinyLFU(1000, time.Minute),
+		})
+	}
 }
 
 func connect_redis() *redis.Client {
 
 	// get configurations
-	EnableNullResultCache = Config.Cache.EnableNullResultCache
-	EnableLocalCache = Config.Cache.EnableLocalCache
-	CacheTTL = time.Second * time.Duration(Config.Cache.CacheTTL)
 	redis_address := Config.Cache.Redis.Address
 	redis_password := Config.Cache.Redis.Password
 	redis_db := Config.Cache.Redis.DBindex
+
+	//if enable_redis == false {
+	//	return nil
+	//}
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     redis_address,
