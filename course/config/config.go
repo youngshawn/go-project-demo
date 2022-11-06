@@ -37,7 +37,7 @@ type config struct {
 			DBindex  uint `mapstructure:"db"`
 			Pool     struct {
 				PoolSize        uint `mapstructure:"pool-size"`
-				MaxIdleConns    uint `mapstructure:max-idle-conns`
+				MaxIdleConns    uint `mapstructure:"max-idle-conns"`
 				ConnMaxIdleTime uint `mapstructure:"conn-max-idle-time"`
 				ConnMaxLifetime uint `mapstructure:"conn-max-life-time"`
 			}

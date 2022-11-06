@@ -43,6 +43,15 @@ func connect_redis() *redis.Client {
 	redis_address := Config.Cache.Redis.Address
 	redis_password := Config.Cache.Redis.Password
 	redis_db := Config.Cache.Redis.DBindex
+	redis_pool_size := Config.Cache.Redis.Pool.PoolSize
+	redis_max_idle_conns := Config.Cache.Redis.Pool.MaxIdleConns
+	redis_conn_max_idle_time := Config.Cache.Redis.Pool.ConnMaxIdleTime
+	redis_conn_max_life_time := Config.Cache.Redis.Pool.ConnMaxLifetime
+	redis_max_retries := Config.Cache.Redis.MaxRetries
+	redis_pool_timeout := Config.Cache.Redis.PoolTimeout
+	redis_dial_timeout := Config.Cache.Redis.DialTimeout
+	redis_read_timeout := Config.Cache.Redis.ReadTimeout
+	redis_write_timeout := Config.Cache.Redis.WriteTimeout
 
 	//if enable_redis == false {
 	//	return nil
@@ -53,15 +62,15 @@ func connect_redis() *redis.Client {
 		Password: redis_password,
 		DB:       int(redis_db),
 
-		PoolSize:              100,
-		PoolTimeout:           time.Second * 10,
-		ConnMaxIdleTime:       time.Minute * 10,
-		ConnMaxLifetime:       time.Hour,
-		MaxRetries:            1,
-		MaxIdleConns:          10,
-		DialTimeout:           time.Second * 5,
-		ReadTimeout:           time.Second * 5,
-		WriteTimeout:          time.Second * 3,
+		PoolSize:              int(redis_pool_size),
+		MaxIdleConns:          int(redis_max_idle_conns),
+		ConnMaxIdleTime:       time.Second * time.Duration(redis_conn_max_idle_time),
+		ConnMaxLifetime:       time.Second * time.Duration(redis_conn_max_life_time),
+		MaxRetries:            int(redis_max_retries),
+		PoolTimeout:           time.Second * time.Duration(redis_pool_timeout),
+		DialTimeout:           time.Second * time.Duration(redis_dial_timeout),
+		ReadTimeout:           time.Second * time.Duration(redis_read_timeout),
+		WriteTimeout:          time.Second * time.Duration(redis_write_timeout),
 		ContextTimeoutEnabled: true,
 	})
 
