@@ -35,6 +35,17 @@ type config struct {
 			Address  string
 			Password string
 			DBindex  uint `mapstructure:"db"`
+			Pool     struct {
+				PoolSize        uint `mapstructure:"pool-size"`
+				MaxIdleConns    uint `mapstructure:max-idle-conns`
+				ConnMaxIdleTime uint `mapstructure:"conn-max-idle-time"`
+				ConnMaxLifetime uint `mapstructure:"conn-max-life-time"`
+			}
+			MaxRetries   uint `mapstructure:"max-retries"`
+			PoolTimeout  uint `mapstructure:"pool-timeout"`
+			DialTimeout  uint `mapstructure:"dial-timeout"`
+			ReadTimeout  uint `mapstructure:"read-timeout"`
+			WriteTimeout uint `mapstructure:"write-timeout"`
 		}
 	}
 }
@@ -62,6 +73,15 @@ func init() {
 	viper.SetDefault("cache.redis.address", "127.0.0.1:6379")
 	viper.SetDefault("cache.redis.password", "")
 	viper.SetDefault("cache.redis.db", 0)
+	viper.SetDefault("cache.redis.pool.pool-size", 100)
+	viper.SetDefault("cache.redis.pool.max-idle-conns", 10)
+	viper.SetDefault("cache.redis.pool.conn-max-idle-time", 600)
+	viper.SetDefault("cache.redis.pool.conn-max-life-time", 3600)
+	viper.SetDefault("cache.redis.max-retries", 1)
+	viper.SetDefault("cache.redis.pool-timeout", 10)
+	viper.SetDefault("cache.redis.dial-timeout", 5)
+	viper.SetDefault("cache.redis.read-timeout", 5)
+	viper.SetDefault("cache.redis.write-timeout", 3)
 }
 
 func ExposeConfigAsPFlags(cmd *cobra.Command) {
@@ -85,4 +105,13 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags.String("cache.redis.address", "", "redis address (default is '127.0.0.1:6379')")
 	pflags.String("cache.redis.password", "", "redis password (default is '')")
 	pflags.Uint("cache.redis.db", 0, "redis db index (default is 0)")
+	pflags.Uint("cache.redis.pool.pool-size", 0, "redis connection pool size (default is 100)")
+	pflags.Uint("cache.redis.pool.max-idle-conns", 0, "redis connection pool max-idle-conns (default is 10)")
+	pflags.Uint("cache.redis.pool.conn-max-idle-time", 0, "redis connection pool conn-max-idle-time (default is 600)")
+	pflags.Uint("cache.redis.pool.conn-max-life-time", 0, "redis connection pool conn-max-life-time (default is 3600)")
+	pflags.Uint("cache.redis.max-retries", 0, "redis max-retries (default is 1)")
+	pflags.Uint("cache.redis.pool-timeout", 0, "redis pool-timeout (default is 10)")
+	pflags.Uint("cache.redis.dial-timeout", 0, "redis dial-timeout (default is 5)")
+	pflags.Uint("cache.redis.read-timeout", 0, "redis read-timeout (default is 5)")
+	pflags.Uint("cache.redis.write-timeout", 0, "redis write-timeout (default is 3)")
 }
