@@ -1,0 +1,37 @@
+listen: :3333
+
+database:
+  type: sqlite
+  sqlite:
+    dbname: course.db
+  mysql:
+    username: username
+    password: password
+    address : 127.0.0.1:3306
+    dbname  : course
+    options : charset=utf8mb4&parseTime=True&loc=Local
+  pool:
+    max-idle-conns: 11
+    max-open-conns: 101
+    conn-max-idle-time: 301
+    conn-max-life-time: 3601
+
+cache:
+  enable-redis: true
+  enable-local-cache: false
+  enable-null-result-cache: true
+  cache-ttl: 3601
+  redis:
+    address: 127.0.0.1:6379
+    password: ""
+    db     : 1
+    max-retries: 2
+    pool-timeout: 11
+    dial-timeout: 6
+    read-timeout: 6
+    write-timeout: 4
+    pool:
+      pool-size: 202
+      max-idle-conns: 11
+      conn-max-idle-time: 601
+      conn-max-life-time: 3601

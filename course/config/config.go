@@ -1,9 +1,16 @@
 package config
 
 import (
+	"sync"
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+var Config config
+var ConfigLocker sync.RWMutex
+var ViperLocker sync.RWMutex
 
 type config struct {
 	Listen   string
@@ -28,9 +35,9 @@ type config struct {
 	}
 	Cache struct {
 		EnableRedis           bool `mapstructure:"enable-redis"`
-		EnableLocalCache      bool `mapstructure:"enable-local-cache"`
-		EnableNullResultCache bool `mapstructure:"enable-null-result-cache"`
-		CacheTTL              uint `mapstructure:"cache-ttl"`
+		EnableLocalCache      bool `mapstructure:"enable-local-cache"`       //Dynamic Config
+		EnableNullResultCache bool `mapstructure:"enable-null-result-cache"` //Dynamic Config
+		CacheTTL              uint `mapstructure:"cache-ttl"`                //Dynamic Config
 		Redis                 struct {
 			Address  string
 			Password string
@@ -49,8 +56,6 @@ type config struct {
 		}
 	}
 }
-
-var Config config
 
 func init() {
 	// viper set defaults
@@ -114,4 +119,22 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags.Uint("cache.redis.dial-timeout", 0, "redis dial-timeout (default is 5)")
 	pflags.Uint("cache.redis.read-timeout", 0, "redis read-timeout (default is 5)")
 	pflags.Uint("cache.redis.write-timeout", 0, "redis write-timeout (default is 3)")
+}
+
+func PublishDynamicConfigs() error {
+	ConfigLocker.RLock()
+	defer ConfigLocker.Unlock()
+	DynamicCacheConfigsLocker.Lock()
+	defer DynamicCacheConfigsLocker.Unlock()
+
+	EnableLocalCache = Config.Cache.EnableLocalCache
+	EnableNullResultCache = Config.Cache.EnableNullResultCache
+	CacheTTL = time.Second * time.Duration(Config.Cache.CacheTTL)
+
+	return nil
+}
+
+func GetDynamicCacheConfigs(key string) (interface{}, error) {
+
+	return nil, nil
 }

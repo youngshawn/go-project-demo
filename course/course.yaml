@@ -18,14 +18,14 @@ database:
 
 cache:
   enable-redis: true
-  enable-local-cache: true
-  enable-null-result-cache: true
-  cache-ttl: 3600
+  #enable-local-cache: true
+  #enable-null-result-cache: true
+  #cache-ttl: 3600
   redis:
     address: 127.0.0.1:6379
     password: ""
     db     : 0
-    max-retries: 1
+    max-retries: 3
     pool-timeout: 10
     dial-timeout: 5
     read-timeout: 5

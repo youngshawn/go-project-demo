@@ -6,13 +6,17 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/youngshawn/go-project-demo/course/config"
 	"github.com/youngshawn/go-project-demo/course/models"
 	"github.com/youngshawn/go-project-demo/course/routes"
+
+	_ "github.com/spf13/viper/remote"
 )
 
 var cfgFile string
@@ -31,13 +35,16 @@ var rootCmd = &cobra.Command{
 		}
 		fmt.Println(string(out1))*/
 
-		out2, err := json.MarshalIndent(&config.Config, "", "    ")
-		if err != nil {
-			log.Fatal(err)
+		for {
+			out2, err := json.MarshalIndent(&config.Config, "", "    ")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(out2))
+			time.Sleep(5 * time.Second)
 		}
-		fmt.Println(string(out2))
 
-		//os.Exit(1)
+		os.Exit(2)
 
 		// get configurations
 		address := config.Config.Listen
@@ -101,14 +108,65 @@ func initConfig() {
 
 	viper.AutomaticEnv() // read in environment variables that match
 
-	// load config-file into viper
+	// load local config-file into viper
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Using config file:", viper.ConfigFileUsed())
+	log.Println("Using config file:", viper.ConfigFileUsed())
+
+	// load remote config-file into viper
+	viper.AddRemoteProvider("etcd3", "http://127.0.0.1:2379", "/config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml")
+	viper.SetConfigType("yaml")
+	if err := viper.ReadRemoteConfig(); err != nil {
+		log.Fatal(err)
+	}
 
 	// Unmarshal
 	if err := viper.Unmarshal(&config.Config); err != nil {
 		log.Fatal(err)
 	}
+
+	// watch local config-file
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		log.Println("Local config file changed:", e.Name)
+		if err := viper.ReadInConfig(); err != nil {
+			log.Println("Read local config file failed, error:", err)
+			return
+		}
+		log.Println("Read local config file succeed.")
+
+		if err := viper.Unmarshal(&config.Config); err != nil {
+			log.Println("Unmarshal config failed, error:", err)
+			return
+		}
+		log.Println("Unmarshal config succeed.")
+
+		if err := config.PublishDynamicConfigs(); err != nil {
+			log.Println("Publish config failed, error:", err)
+			return
+		}
+		log.Println("Publish config succeed.")
+	})
+	viper.WatchConfig()
+
+	// watch remote config-file
+	// open a goroutine to watch remote changes forever
+	go func() {
+		for {
+			time.Sleep(time.Second * 10) // delay after each request
+
+			// currently, only tested with etcd support
+			if err := viper.WatchRemoteConfig(); err != nil {
+				log.Printf("Unable to read remote config: %v", err)
+				continue
+			}
+
+			// unmarshal new config into our runtime config struct. you can also use channel
+			// to implement a signal to notify the system of the changes
+			if err := viper.Unmarshal(&config.Config); err != nil {
+				log.Println("Unmarshal config failed, error:", err)
+				continue
+			}
+		}
+	}()
 }

@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	cache "github.com/go-redis/cache/v9"
@@ -10,9 +11,11 @@ import (
 )
 
 var redisCache *cache.Cache
+
 var EnableNullResultCache bool
 var EnableLocalCache bool
 var CacheTTL time.Duration
+var DynamicCacheConfigsLocker sync.RWMutex
 
 func CacheConnectAndSetup() {
 
