@@ -23,18 +23,18 @@ type Teacher struct {
 }
 
 func (t *Teacher) CreateTeacher() error {
-	redisCache.DeleteFromLocalCache("/teacher/")
-	redisCache.Delete(context.Background(), "/teacher/")
+	Cache.DeleteFromLocalCache("/teacher/")
+	Cache.Delete(context.Background(), "/teacher/")
 
 	result := db.Create(t)
 
 	time.Sleep(time.Millisecond * 500)
-	redisCache.DeleteFromLocalCache("/teacher/")
-	redisCache.Delete(context.Background(), "/teacher/")
-	redisCache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", t.ID))
-	redisCache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", t.ID))
-	redisCache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", t.ID))
-	redisCache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", t.ID))
+	Cache.DeleteFromLocalCache("/teacher/")
+	Cache.Delete(context.Background(), "/teacher/")
+	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", t.ID))
+	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", t.ID))
+	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", t.ID))
+	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", t.ID))
 
 	return result.Error
 }
@@ -50,26 +50,26 @@ func (t *Teacher) UpdateTeacher() (*Teacher, error) {
 		return nil, ErrorObjectNotFound
 	}
 
-	redisCache.DeleteFromLocalCache("/teacher/")
-	redisCache.Delete(context.Background(), "/teacher/")
-	redisCache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", t.ID))
-	redisCache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", t.ID))
+	Cache.DeleteFromLocalCache("/teacher/")
+	Cache.Delete(context.Background(), "/teacher/")
+	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", t.ID))
+	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", t.ID))
 	courses, _ := GetCoursesByTeacherId(t.ID)
 	for _, c := range courses {
-		redisCache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
-		redisCache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
 	}
 
 	result = db.Save(t)
 
 	time.Sleep(time.Millisecond * 500)
-	redisCache.DeleteFromLocalCache("/teacher/")
-	redisCache.Delete(context.Background(), "/teacher/")
-	redisCache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", t.ID))
-	redisCache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", t.ID))
+	Cache.DeleteFromLocalCache("/teacher/")
+	Cache.Delete(context.Background(), "/teacher/")
+	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", t.ID))
+	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", t.ID))
 	for _, c := range courses {
-		redisCache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
-		redisCache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
 	}
 
 	return t, result.Error
@@ -86,30 +86,30 @@ func DeleteTeacherById(Id uint) (*Teacher, error) {
 		return nil, ErrorObjectNotFound
 	}
 
-	redisCache.DeleteFromLocalCache("/teacher/")
-	redisCache.Delete(context.Background(), "/teacher/")
-	redisCache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", Id))
-	redisCache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", Id))
-	redisCache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", Id))
-	redisCache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", Id))
+	Cache.DeleteFromLocalCache("/teacher/")
+	Cache.Delete(context.Background(), "/teacher/")
+	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", Id))
+	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", Id))
+	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", Id))
+	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", Id))
 	courses, _ := GetCoursesByTeacherId(Id)
 	for _, c := range courses {
-		redisCache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
-		redisCache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
 	}
 
 	result = db.Delete(&teacher, Id)
 
 	time.Sleep(time.Millisecond * 500)
-	redisCache.DeleteFromLocalCache("/teacher/")
-	redisCache.Delete(context.Background(), "/teacher/")
-	redisCache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", Id))
-	redisCache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", Id))
-	redisCache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", Id))
-	redisCache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", Id))
+	Cache.DeleteFromLocalCache("/teacher/")
+	Cache.Delete(context.Background(), "/teacher/")
+	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d", Id))
+	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d", Id))
+	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", Id))
+	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", Id))
 	for _, c := range courses {
-		redisCache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
-		redisCache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
 	}
 
 	if result.Error != nil {
@@ -122,19 +122,21 @@ func DeleteTeacherById(Id uint) (*Teacher, error) {
 }
 
 func GetAllTeachers() ([]Teacher, error) {
+	dynamicCacheConfig := config.GetDynamicCacheConfig()
+
 	var teachers []Teacher
 
-	err := redisCache.Once(&cache.Item{
+	err := Cache.Once(&cache.Item{
 		Key:            "/teacher/",
 		Value:          &teachers,
-		TTL:            config.CacheTTL,
-		SkipLocalCache: !config.EnableLocalCache,
+		TTL:            dynamicCacheConfig.CacheTTL,
+		SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 		Do: func(i *cache.Item) (interface{}, error) {
 			log.Println("GetAllTeachers from DB...")
 			result := db.Find(i.Value)
 
 			err := result.Error
-			if err == nil && result.RowsAffected == 0 && !config.EnableNullResultCache {
+			if err == nil && result.RowsAffected == 0 && !dynamicCacheConfig.EnableNullResultCache {
 				err = ErrorObjectNotFound
 			}
 
@@ -150,20 +152,22 @@ func GetAllTeachers() ([]Teacher, error) {
 }
 
 func GetTeacherById(Id uint) (*Teacher, error) {
+	dynamicCacheConfig := config.GetDynamicCacheConfig()
+
 	var teacher Teacher
 
-	err := redisCache.Once(&cache.Item{
+	err := Cache.Once(&cache.Item{
 		Key:            fmt.Sprintf("/teacher/%d", Id),
 		Value:          &teacher,
-		TTL:            config.CacheTTL,
-		SkipLocalCache: !config.EnableLocalCache,
+		TTL:            dynamicCacheConfig.CacheTTL,
+		SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 		Do: func(i *cache.Item) (interface{}, error) {
 			log.Println("GetTeacherById from DB...")
 			result := db.Find(i.Value, Id)
 
 			err := result.Error
 			if err == nil && result.RowsAffected == 0 { // Null Result
-				if config.EnableNullResultCache {
+				if dynamicCacheConfig.EnableNullResultCache {
 					return nil, nil
 				} else {
 					return nil, ErrorObjectNotFound

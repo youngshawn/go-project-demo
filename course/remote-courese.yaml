@@ -1,4 +1,4 @@
-listen: :3333
+listen: :3000
 
 database:
   type: sqlite
@@ -11,27 +11,27 @@ database:
     dbname  : course
     options : charset=utf8mb4&parseTime=True&loc=Local
   pool:
-    max-idle-conns: 11
-    max-open-conns: 101
-    conn-max-idle-time: 301
-    conn-max-life-time: 3601
+    max-idle-conns: 10
+    max-open-conns: 100
+    conn-max-idle-time: 300
+    conn-max-life-time: 3600
 
 cache:
   enable-redis: true
-  enable-local-cache: false
+  enable-local-cache: true
   enable-null-result-cache: true
-  cache-ttl: 3601
+  cache-ttl: 3600
   redis:
     address: 127.0.0.1:6379
     password: ""
     db     : 1
-    max-retries: 2
-    pool-timeout: 11
-    dial-timeout: 6
+    max-retries: 1
+    pool-timeout: 10
+    dial-timeout: 5
     read-timeout: 6
-    write-timeout: 4
+    write-timeout: 3
     pool:
-      pool-size: 202
-      max-idle-conns: 11
-      conn-max-idle-time: 601
-      conn-max-life-time: 3601
+      pool-size: 100
+      max-idle-conns: 10
+      conn-max-idle-time: 600
+      conn-max-life-time: 3600

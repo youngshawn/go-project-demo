@@ -3,37 +3,48 @@ package config
 import (
 	"context"
 	"log"
-	"sync"
 	"time"
 
 	cache "github.com/go-redis/cache/v9"
 	redis "github.com/go-redis/redis/v9"
 )
 
-var redisCache *cache.Cache
+type DynamicCacheConfig struct {
+	EnableNullResultCache bool
+	EnableLocalCache      bool
+	CacheTTL              time.Duration
+}
 
-var EnableNullResultCache bool
-var EnableLocalCache bool
-var CacheTTL time.Duration
-var DynamicCacheConfigsLocker sync.RWMutex
+func GetDynamicCacheConfig() *DynamicCacheConfig {
+	ConfigLocker.RLock()
+	defer ConfigLocker.RUnlock()
+
+	return &DynamicCacheConfig{
+		EnableLocalCache:      Config.Cache.EnableLocalCache,
+		EnableNullResultCache: Config.Cache.EnableNullResultCache,
+		CacheTTL:              time.Second * time.Duration(Config.Cache.CacheTTL),
+	}
+}
+
+var Cache *cache.Cache
 
 func CacheConnectAndSetup() {
 
 	// get configurations
-	EnableLocalCache = Config.Cache.EnableLocalCache
-	EnableNullResultCache = Config.Cache.EnableNullResultCache
-	CacheTTL = time.Second * time.Duration(Config.Cache.CacheTTL)
+	//EnableLocalCache = Config.Cache.EnableLocalCache
+	//EnableNullResultCache = Config.Cache.EnableNullResultCache
+	//CacheTTL = time.Second * time.Duration(Config.Cache.CacheTTL)
 
 	enable_redis := Config.Cache.EnableRedis
 
 	if enable_redis == true {
 		rdb := connect_redis()
-		redisCache = cache.New(&cache.Options{
+		Cache = cache.New(&cache.Options{
 			Redis:      rdb,
 			LocalCache: cache.NewTinyLFU(1000, time.Minute),
 		})
 	} else {
-		redisCache = cache.New(&cache.Options{
+		Cache = cache.New(&cache.Options{
 			Redis:      nil,
 			LocalCache: cache.NewTinyLFU(1000, time.Minute),
 		})
@@ -85,5 +96,5 @@ func connect_redis() *redis.Client {
 }
 
 func GetCache() *cache.Cache {
-	return redisCache
+	return Cache
 }

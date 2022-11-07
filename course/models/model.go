@@ -9,7 +9,7 @@ import (
 )
 
 var db *gorm.DB
-var redisCache *cache.Cache
+var Cache *cache.Cache
 var ErrorObjectNotFound = errors.New("ObjectNotFound")
 
 func ModelInit() {
@@ -17,5 +17,5 @@ func ModelInit() {
 	//db.AutoMigrate(&Course{})
 	db.AutoMigrate(&Course{}, &Teacher{})
 
-	redisCache = config.GetCache()
+	Cache = config.GetCache()
 }

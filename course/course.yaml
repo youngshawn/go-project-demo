@@ -25,7 +25,7 @@ cache:
     address: 127.0.0.1:6379
     password: ""
     db     : 0
-    max-retries: 3
+    max-retries: 1
     pool-timeout: 10
     dial-timeout: 5
     read-timeout: 5

@@ -2,7 +2,6 @@ package config
 
 import (
 	"sync"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -10,7 +9,7 @@ import (
 
 var Config config
 var ConfigLocker sync.RWMutex
-var ViperLocker sync.RWMutex
+var ViperLocker sync.Mutex
 
 type config struct {
 	Listen   string
@@ -119,22 +118,4 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags.Uint("cache.redis.dial-timeout", 0, "redis dial-timeout (default is 5)")
 	pflags.Uint("cache.redis.read-timeout", 0, "redis read-timeout (default is 5)")
 	pflags.Uint("cache.redis.write-timeout", 0, "redis write-timeout (default is 3)")
-}
-
-func PublishDynamicConfigs() error {
-	ConfigLocker.RLock()
-	defer ConfigLocker.Unlock()
-	DynamicCacheConfigsLocker.Lock()
-	defer DynamicCacheConfigsLocker.Unlock()
-
-	EnableLocalCache = Config.Cache.EnableLocalCache
-	EnableNullResultCache = Config.Cache.EnableNullResultCache
-	CacheTTL = time.Second * time.Duration(Config.Cache.CacheTTL)
-
-	return nil
-}
-
-func GetDynamicCacheConfigs(key string) (interface{}, error) {
-
-	return nil, nil
 }
