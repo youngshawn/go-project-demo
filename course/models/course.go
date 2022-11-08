@@ -25,101 +25,121 @@ type Course struct {
 }
 
 func (c *Course) CreateCourse() error {
-	Cache.DeleteFromLocalCache("/course/")
-	Cache.Delete(context.Background(), "/course/")
 
-	result := db.Create(c)
+	err := hystrix.Do("CourseCUD", func() error {
 
-	time.Sleep(time.Millisecond * 500)
-	Cache.DeleteFromLocalCache("/course/")
-	Cache.Delete(context.Background(), "/course/")
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", c.ID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", c.ID))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", c.TeacherID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", c.TeacherID))
+		Cache.DeleteFromLocalCache("/course/")
+		Cache.Delete(context.Background(), "/course/")
 
-	return result.Error
+		result := db.Create(c)
+
+		time.Sleep(time.Millisecond * 500)
+		Cache.DeleteFromLocalCache("/course/")
+		Cache.Delete(context.Background(), "/course/")
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", c.TeacherID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", c.TeacherID))
+
+		return result.Error
+
+	}, nil)
+
+	return err
 }
 
 func (c *Course) UpdateCourse() (*Course, error) {
 	var course Course
 
-	result := db.Find(&course, c.ID)
-	if result.Error != nil {
-		return nil, result.Error
+	err := hystrix.Do("CourseCUD", func() error {
+
+		result := db.Find(&course, c.ID)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return ErrorObjectNotFound
+		}
+
+		Cache.DeleteFromLocalCache("/course/")
+		Cache.Delete(context.Background(), "/course/")
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", c.TeacherID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", c.TeacherID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
+
+		result = db.Save(c)
+
+		time.Sleep(time.Millisecond * 500)
+		Cache.DeleteFromLocalCache("/course/")
+		Cache.Delete(context.Background(), "/course/")
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", c.TeacherID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", c.TeacherID))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
+
+		return result.Error
+
+	}, nil)
+
+	if err != nil {
+		return nil, err
 	}
-	if result.RowsAffected == 0 {
-		return nil, ErrorObjectNotFound
-	}
-
-	Cache.DeleteFromLocalCache("/course/")
-	Cache.Delete(context.Background(), "/course/")
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", c.ID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", c.ID))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", c.TeacherID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", c.TeacherID))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
-
-	result = db.Save(c)
-
-	time.Sleep(time.Millisecond * 500)
-	Cache.DeleteFromLocalCache("/course/")
-	Cache.Delete(context.Background(), "/course/")
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", c.ID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", c.ID))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", c.ID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", c.TeacherID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", c.TeacherID))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
-
-	return c, result.Error
+	return c, nil
 }
 
 func DeleteCourseById(Id uint) (*Course, error) {
 	var course Course
 
-	result := db.Find(&course, Id)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	if result.RowsAffected == 0 {
-		return nil, ErrorObjectNotFound
+	err := hystrix.Do("CourseCUD", func() error {
+
+		result := db.Find(&course, Id)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return ErrorObjectNotFound
+		}
+
+		Cache.DeleteFromLocalCache("/course/")
+		Cache.Delete(context.Background(), "/course/")
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", Id))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", Id))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", Id))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", Id))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
+
+		result = db.Delete(&course, Id)
+
+		time.Sleep(time.Millisecond * 500)
+		Cache.DeleteFromLocalCache("/course/")
+		Cache.Delete(context.Background(), "/course/")
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", Id))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", Id))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", Id))
+		Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", Id))
+		Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
+		Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
+
+		return result.Error
+
+	}, nil)
+
+	if err != nil {
+		return nil, err
 	}
 
-	Cache.DeleteFromLocalCache("/course/")
-	Cache.Delete(context.Background(), "/course/")
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", Id))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", Id))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", Id))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", Id))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
-
-	result = db.Delete(&course, Id)
-
-	time.Sleep(time.Millisecond * 500)
-	Cache.DeleteFromLocalCache("/course/")
-	Cache.Delete(context.Background(), "/course/")
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d", Id))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d", Id))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/course/%d/teacher", Id))
-	Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", Id))
-	Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
-	Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
-
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	if result.RowsAffected == 0 {
-		return nil, ErrorObjectNotFound
-	}
 	return &course, nil
 }
 

@@ -6,6 +6,13 @@ import (
 
 func init() {
 	hystrix.Configure(map[string]hystrix.CommandConfig{
+		"TeacherCUD": {
+			Timeout:                5000,
+			MaxConcurrentRequests:  20,
+			RequestVolumeThreshold: 20,
+			SleepWindow:            5000,
+			ErrorPercentThreshold:  25,
+		},
 		"GetAllCourses": {
 			Timeout:                2000,
 			MaxConcurrentRequests:  20,
