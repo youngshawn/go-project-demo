@@ -3,6 +3,7 @@ module github.com/youngshawn/go-project-demo/course
 go 1.19
 
 require (
+	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-redis/cache/v9 v9.0.0-beta.1
@@ -61,6 +62,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sagikazarmark/crypt v0.6.0 // indirect
+	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

@@ -11,8 +11,8 @@ database:
     dbname  : course
     options : charset=utf8mb4&parseTime=True&loc=Local
   pool:
-    max-idle-conns: 10
     max-open-conns: 100
+    max-idle-conns: 10
     conn-max-idle-time: 300
     conn-max-life-time: 3600
 
@@ -26,10 +26,10 @@ cache:
     password: ""
     db     : 0
     max-retries: 1
-    pool-timeout: 10
-    dial-timeout: 5
-    read-timeout: 5
-    write-timeout: 3
+    pool-timeout: 3
+    dial-timeout: 2
+    read-timeout: 2
+    write-timeout: 1
     pool:
       pool-size: 100
       max-idle-conns: 10
