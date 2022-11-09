@@ -70,7 +70,7 @@ func (t *Teacher) UpdateTeacher() (*Teacher, error) {
 			Cache.Delete(context.Background(), fmt.Sprintf("/course/%d/teacher", c.ID))
 		}
 
-		result = db.Save(t)
+		result = db.Omit("CreatedAt").Save(t)
 
 		time.Sleep(time.Millisecond * 500)
 		Cache.DeleteFromLocalCache("/teacher/")

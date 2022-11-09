@@ -8,13 +8,14 @@ remoteconfig:
   format: yaml
 
 database:
-  type: sqlite
+  type: mysql
   sqlite:
-    dbname: course.db
+    filename: course.db
+    options: _foreign_keys=on
   mysql:
-    username: username
+    username: course_user
     password: password
-    address : 127.0.0.1:3306
+    address : 10.100.129.124:8080
     dbname  : course
     options : charset=utf8mb4&parseTime=True&loc=Local
   pool:

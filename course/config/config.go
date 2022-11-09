@@ -16,7 +16,8 @@ type config struct {
 	Database struct {
 		Type   string
 		Sqlite struct {
-			DBname string
+			Filename string
+			Options  string
 		}
 		MySQL struct {
 			Username string
@@ -67,7 +68,8 @@ func init() {
 	// viper set defaults
 	viper.SetDefault("listen", ":8080")
 	viper.SetDefault("database.type", "sqlite")
-	viper.SetDefault("database.sqlite.dbname", "course.db")
+	viper.SetDefault("database.sqlite.filename", "course.db")
+	viper.SetDefault("database.sqlite.options", "_foreign_keys=on")
 	viper.SetDefault("database.mysql.username", "username")
 	viper.SetDefault("database.mysql.password", "password")
 	viper.SetDefault("database.mysql.address", "127.0.0.1:3306")
@@ -104,11 +106,12 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags := cmd.PersistentFlags()
 	pflags.String("listen", "", "server address (default is ':8080')")
 	pflags.String("database.type", "", "database type, sqlite or mysql (default is 'sqlite')")
-	pflags.String("database.sqlite.dbname", "", "sqlite db name (default is './course.db')")
+	pflags.String("database.sqlite.filename", "", "sqlite db filename (default is './course.db')")
+	pflags.String("database.sqlite.options", "", "sqlite options (default is '_foreign_keys=on')")
 	pflags.String("database.mysql.username", "", "mysql username")
 	pflags.String("database.mysql.password", "", "mysql password")
 	pflags.String("database.mysql.address", "", ",mysql address (default is '127.0.0.1:3306')")
-	pflags.String("database.mysql.dbname", "", "mysql db name (default is 'course'")
+	pflags.String("database.mysql.dbname", "", "mysql db name (default is 'course')")
 	pflags.String("database.mysql.options", "", "mysql options (default is 'charset=utf8mb4&parseTime=True&loc=Local')")
 	pflags.Uint("database.pool.max-idle-conns", 0, "database connection pool max-idle-conns (default is 10)")
 	pflags.Uint("database.pool.max-open-conns", 0, "database connection pool max-open-conns (default is 100)")
@@ -131,7 +134,7 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags.Uint("cache.redis.read-timeout", 0, "redis read-timeout (default is 5)")
 	pflags.Uint("cache.redis.write-timeout", 0, "redis write-timeout (default is 3)")
 	pflags.Bool("remoteconfig.enable", false, "enable remote config (default is true)")
-	pflags.String("remoteconfig.provider", "", "remote config provider (default is etcd3")
+	pflags.String("remoteconfig.provider", "", "remote config provider (default is etcd3)")
 	pflags.String("remoteconfig.endpoint", "", "remote config endpoint (default is '127.0.0.1:2379')")
 	pflags.String("remoteconfig.path", "", "remote config path (default is '/config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml')")
 	pflags.String("remoteconfig.format", "", "remote config format (default is 'yaml')")

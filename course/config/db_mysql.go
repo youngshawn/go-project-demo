@@ -17,10 +17,10 @@ func connect_mysql() *gorm.DB {
 	mysql_dbname := Config.Database.MySQL.DBname
 	mysql_options := Config.Database.MySQL.Options
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", mysql_username,
+	msyql_dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", mysql_username,
 		mysql_password, mysql_address, mysql_dbname, mysql_options)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(msyql_dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -74,7 +74,7 @@ func (c *Course) UpdateCourse() (*Course, error) {
 		Cache.DeleteFromLocalCache(fmt.Sprintf("/teacher/%d/course", course.TeacherID))
 		Cache.Delete(context.Background(), fmt.Sprintf("/teacher/%d/course", course.TeacherID))
 
-		result = db.Save(c)
+		result = db.Omit("CreatedAt").Save(c)
 
 		time.Sleep(time.Millisecond * 500)
 		Cache.DeleteFromLocalCache("/course/")
