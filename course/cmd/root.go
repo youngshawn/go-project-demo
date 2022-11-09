@@ -112,10 +112,17 @@ func initConfig() {
 	log.Println("Using config file:", viper.ConfigFileUsed())
 
 	// load remote config-file into viper
-	viper.AddRemoteProvider("etcd3", "http://127.0.0.1:2379", "/config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml")
-	viper.SetConfigType("yaml")
-	if err := viper.ReadRemoteConfig(); err != nil {
-		log.Fatal(err)
+	remote_enable := viper.GetBool("remoteconfig.enable")
+	remote_provider := viper.GetString("remoteconfig.provider")
+	remote_endpoint := viper.GetString("remoteconfig.endpoint")
+	remote_path := viper.GetString("remoteconfig.path")
+	remote_format := viper.GetString("remoteconfig.format")
+	if remote_enable {
+		viper.AddRemoteProvider(remote_provider, remote_endpoint, remote_path)
+		viper.SetConfigType(remote_format)
+		if err := viper.ReadRemoteConfig(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Unmarshal viper map into config
@@ -147,26 +154,28 @@ func initConfig() {
 
 	// watch remote config-file
 	// open a goroutine to watch remote changes forever
-	go func() {
-		for {
-			time.Sleep(time.Second * 10)
+	if remote_enable {
+		go func() {
+			for {
+				time.Sleep(time.Second * 10)
 
-			func() {
-				config.ViperLocker.Lock()
-				defer config.ViperLocker.Unlock()
+				func() {
+					config.ViperLocker.Lock()
+					defer config.ViperLocker.Unlock()
 
-				if err := viper.WatchRemoteConfig(); err != nil {
-					log.Printf("Read remote config file failed, error: %v", err)
-					return
-				}
+					if err := viper.WatchRemoteConfig(); err != nil {
+						log.Printf("Read remote config file failed, error: %v", err)
+						return
+					}
 
-				config.ConfigLocker.Lock()
-				defer config.ConfigLocker.Unlock()
-				if err := viper.Unmarshal(&config.Config); err != nil {
-					log.Println("Unmarshal config failed, error:", err)
-					return
-				}
-			}()
-		}
-	}()
+					config.ConfigLocker.Lock()
+					defer config.ConfigLocker.Unlock()
+					if err := viper.Unmarshal(&config.Config); err != nil {
+						log.Println("Unmarshal config failed, error:", err)
+						return
+					}
+				}()
+			}
+		}()
+	}
 }

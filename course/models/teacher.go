@@ -153,7 +153,7 @@ func GetAllTeachers() ([]Teacher, error) {
 			TTL:            dynamicCacheConfig.CacheTTL,
 			SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 			Do: func(i *cache.Item) (interface{}, error) {
-				log.Println("GetAllTeachers from DB...")
+				log.Println("GetAllTeachers: miss cache get from DB...")
 				result := db.Find(i.Value)
 
 				err := result.Error
@@ -185,7 +185,7 @@ func GetTeacherById(Id uint) (*Teacher, error) {
 			TTL:            dynamicCacheConfig.CacheTTL,
 			SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 			Do: func(i *cache.Item) (interface{}, error) {
-				log.Println("GetTeacherById from DB...")
+				log.Println("GetTeacherById: miss cache get from DB...")
 				result := db.Find(i.Value, Id)
 
 				err := result.Error

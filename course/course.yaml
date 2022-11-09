@@ -1,5 +1,12 @@
 listen: :3000
 
+remoteconfig:
+  enable: true
+  provider: etcd3
+  endpoint: 127.0.0.1:2379
+  path: /config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml
+  format: yaml
+
 database:
   type: sqlite
   sqlite:

@@ -155,7 +155,7 @@ func GetAllCourses() ([]Course, error) {
 			TTL:            dynamicCacheConfig.CacheTTL,
 			SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 			Do: func(i *cache.Item) (interface{}, error) {
-				log.Println("GetAllCourses from DB...")
+				log.Println("GetAllCourses: miss cache get from DB...")
 				result := db.Find(i.Value)
 
 				err := result.Error
@@ -187,7 +187,7 @@ func GetCourseById(Id uint) (*Course, error) {
 			TTL:            dynamicCacheConfig.CacheTTL,
 			SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 			Do: func(i *cache.Item) (interface{}, error) {
-				log.Println("GetCourseById from DB...")
+				log.Println("GetCourseById: miss cache get from DB...")
 				result := db.Find(i.Value, Id)
 
 				err := result.Error
@@ -215,24 +215,26 @@ func GetCoursesByTeacherId(Id uint) ([]Course, error) {
 
 	var courses []Course
 
-	err := Cache.Once(&cache.Item{
-		Key:            fmt.Sprintf("/teacher/%d/course", Id),
-		Value:          &courses,
-		TTL:            dynamicCacheConfig.CacheTTL,
-		SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
-		Do: func(i *cache.Item) (interface{}, error) {
-			log.Println("GetCoursesByTeacherId from DB...")
+	err := hystrix.Do("GetCoursesByTeacherId", func() error {
+		return Cache.Once(&cache.Item{
+			Key:            fmt.Sprintf("/teacher/%d/course", Id),
+			Value:          &courses,
+			TTL:            dynamicCacheConfig.CacheTTL,
+			SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
+			Do: func(i *cache.Item) (interface{}, error) {
+				log.Println("GetCoursesByTeacherId: miss cache get from DB...")
 
-			result := db.Where(&Course{TeacherID: Id}).Find(i.Value)
+				result := db.Where(&Course{TeacherID: Id}).Find(i.Value)
 
-			err := result.Error
-			if err == nil && result.RowsAffected == 0 && !dynamicCacheConfig.EnableNullResultCache {
-				err = ErrorObjectNotFound
-			}
+				err := result.Error
+				if err == nil && result.RowsAffected == 0 && !dynamicCacheConfig.EnableNullResultCache {
+					err = ErrorObjectNotFound
+				}
 
-			return i.Value, err
-		},
-	})
+				return i.Value, err
+			},
+		})
+	}, nil)
 
 	if err == nil && len(courses) == 0 {
 		err = ErrorObjectNotFound
@@ -241,7 +243,7 @@ func GetCoursesByTeacherId(Id uint) ([]Course, error) {
 	return courses, err
 }
 
-func GetTeacherByCourseId(Id uint) (*Teacher, error) {
+func GetTeacherByCourseId2(Id uint) (*Teacher, error) {
 	dynamicCacheConfig := config.GetDynamicCacheConfig()
 
 	var teacher Teacher
@@ -251,7 +253,7 @@ func GetTeacherByCourseId(Id uint) (*Teacher, error) {
 		TTL:            dynamicCacheConfig.CacheTTL,
 		SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 		Do: func(i *cache.Item) (interface{}, error) {
-			log.Println("GetTeacherByCourseId from DB...")
+			log.Println("GetTeacherByCourseId: miss cache get from source...")
 			var course Course
 			err1 := Cache.Once(&cache.Item{
 				Key:            fmt.Sprintf("/course/%d", Id),
@@ -259,7 +261,7 @@ func GetTeacherByCourseId(Id uint) (*Teacher, error) {
 				TTL:            dynamicCacheConfig.CacheTTL,
 				SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 				Do: func(i *cache.Item) (interface{}, error) {
-					log.Println("GetCourseById from DB...")
+					log.Println("GetCourseById: miss cache get from DB...")
 
 					result := db.Find(i.Value, Id)
 
@@ -294,7 +296,7 @@ func GetTeacherByCourseId(Id uint) (*Teacher, error) {
 				TTL:            dynamicCacheConfig.CacheTTL,
 				SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
 				Do: func(i *cache.Item) (interface{}, error) {
-					log.Println("GetTeacherById from DB...")
+					log.Println("GetTeacherById: miss cache get from DB...")
 					var teacher Teacher
 					err3 := db.Model(&course).Association("Teacher").Find(&teacher)
 
@@ -321,6 +323,53 @@ func GetTeacherByCourseId(Id uint) (*Teacher, error) {
 			return &teacher, err2
 		},
 	})
+
+	if err == ErrorObjectNotFound || err == nil && teacher.ID == 0 {
+		return nil, ErrorObjectNotFound
+	}
+
+	return &teacher, err
+}
+
+func GetTeacherByCourseId(Id uint) (*Teacher, error) {
+	dynamicCacheConfig := config.GetDynamicCacheConfig()
+
+	var teacher Teacher
+
+	err := hystrix.Do("GetTeacherByCourseId", func() error {
+		return Cache.Once(&cache.Item{
+			Key:            fmt.Sprintf("/course/%d/teacher", Id),
+			Value:          &teacher,
+			TTL:            dynamicCacheConfig.CacheTTL,
+			SkipLocalCache: !dynamicCacheConfig.EnableLocalCache,
+			Do: func(i *cache.Item) (interface{}, error) {
+				log.Println("GetTeacherByCourseId: miss cache get from source...")
+
+				course, err1 := GetCourseById(Id)
+				if err1 == ErrorObjectNotFound || err1 == nil && (course.ID == 0 || course.TeacherID == 0) { // Null Result
+					if dynamicCacheConfig.EnableNullResultCache {
+						return nil, nil
+					} else {
+						return nil, ErrorObjectNotFound
+					}
+				}
+				if err1 != nil {
+					return nil, err1
+				}
+
+				teacher, err2 := GetTeacherById(course.TeacherID)
+				if err2 == ErrorObjectNotFound || err2 == nil && teacher.ID == 0 { // Null Result
+					if dynamicCacheConfig.EnableNullResultCache {
+						return nil, nil
+					} else {
+						return nil, ErrorObjectNotFound
+					}
+				}
+
+				return &teacher, err2
+			},
+		})
+	}, nil)
 
 	if err == ErrorObjectNotFound || err == nil && teacher.ID == 0 {
 		return nil, ErrorObjectNotFound

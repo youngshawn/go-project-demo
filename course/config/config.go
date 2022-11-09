@@ -54,6 +54,13 @@ type config struct {
 			WriteTimeout uint `mapstructure:"write-timeout"`
 		}
 	}
+	RemoteConfig struct {
+		Enable   bool
+		Provider string
+		Endpoint string
+		Path     string
+		Format   string
+	}
 }
 
 func init() {
@@ -86,12 +93,17 @@ func init() {
 	viper.SetDefault("cache.redis.dial-timeout", 5)
 	viper.SetDefault("cache.redis.read-timeout", 5)
 	viper.SetDefault("cache.redis.write-timeout", 3)
+	viper.SetDefault("remoteconfig.enable", true)
+	viper.SetDefault("remoteconfig.provider", "etcd3")
+	viper.SetDefault("remoteconfig.endpoint", "127.0.0.1:2379")
+	viper.SetDefault("remoteconfig.path", "/config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml")
+	viper.SetDefault("remoteconfig.format", "yaml")
 }
 
 func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags := cmd.PersistentFlags()
 	pflags.String("listen", "", "server address (default is ':8080')")
-	pflags.String("database.type", "", "database type (default is 'sqlite')")
+	pflags.String("database.type", "", "database type, sqlite or mysql (default is 'sqlite')")
 	pflags.String("database.sqlite.dbname", "", "sqlite db name (default is './course.db')")
 	pflags.String("database.mysql.username", "", "mysql username")
 	pflags.String("database.mysql.password", "", "mysql password")
@@ -118,4 +130,9 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags.Uint("cache.redis.dial-timeout", 0, "redis dial-timeout (default is 5)")
 	pflags.Uint("cache.redis.read-timeout", 0, "redis read-timeout (default is 5)")
 	pflags.Uint("cache.redis.write-timeout", 0, "redis write-timeout (default is 3)")
+	pflags.Bool("remoteconfig.enable", false, "enable remote config (default is true)")
+	pflags.String("remoteconfig.provider", "", "remote config provider (default is etcd3")
+	pflags.String("remoteconfig.endpoint", "", "remote config endpoint (default is '127.0.0.1:2379')")
+	pflags.String("remoteconfig.path", "", "remote config path (default is '/config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml')")
+	pflags.String("remoteconfig.format", "", "remote config format (default is 'yaml')")
 }
