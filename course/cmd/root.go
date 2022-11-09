@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/afex/hystrix-go/hystrix"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -50,6 +53,11 @@ var rootCmd = &cobra.Command{
 		config.DatabaseConnectAndSetup()
 		config.CacheConnectAndSetup()
 		models.ModelInit()
+
+		// start hystrix dashboard
+		hystrixStreamHandler := hystrix.NewStreamHandler()
+		hystrixStreamHandler.Start()
+		go http.ListenAndServe(net.JoinHostPort("", "81"), hystrixStreamHandler)
 
 		// setup gin server
 		router := gin.Default()
