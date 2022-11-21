@@ -15,7 +15,7 @@ database:
   mysql:
     username: course_user
     password: password
-    address : 10.100.129.124:8080
+    address : 127.0.0.1:3306
     dbname  : course
     options : charset=utf8mb4&parseTime=True&loc=Local
   pool:

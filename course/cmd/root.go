@@ -57,7 +57,7 @@ var rootCmd = &cobra.Command{
 		// start hystrix dashboard
 		hystrixStreamHandler := hystrix.NewStreamHandler()
 		hystrixStreamHandler.Start()
-		go http.ListenAndServe(net.JoinHostPort("", "81"), hystrixStreamHandler)
+		go http.ListenAndServe(net.JoinHostPort("", "8088"), hystrixStreamHandler)
 
 		// setup gin server
 		router := gin.Default()
