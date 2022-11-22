@@ -8,17 +8,40 @@ import (
 	"gorm.io/gorm"
 )
 
-func connect_mysql() *gorm.DB {
+type DynamicMySQLCredsConfig struct {
+	Username string
+	Password string
+}
+
+func GetDynamicMySQLCredsConfig() *DynamicMySQLCredsConfig {
+	ConfigLocker.RLock()
+	defer ConfigLocker.RUnlock()
+
+	return &DynamicMySQLCredsConfig{
+		Username: Config.Database.MySQL.Username,
+		Password: Config.Database.MySQL.Password,
+	}
+}
+
+var (
+	mysqlUsername string
+	mysqlPassword string
+	mysqlAddress  string
+	mysqlDBname   string
+	mysqlOptions  string
+)
+
+func connectMySQL() *gorm.DB {
 
 	// get configurations
-	mysql_username := Config.Database.MySQL.Username
-	mysql_password := Config.Database.MySQL.Password
-	mysql_address := Config.Database.MySQL.Address
-	mysql_dbname := Config.Database.MySQL.DBname
-	mysql_options := Config.Database.MySQL.Options
+	mysqlUsername = Config.Database.MySQL.Username
+	mysqlPassword = Config.Database.MySQL.Password
+	mysqlAddress = Config.Database.MySQL.Address
+	mysqlDBname = Config.Database.MySQL.DBname
+	mysqlOptions = Config.Database.MySQL.Options
 
-	msyql_dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", mysql_username,
-		mysql_password, mysql_address, mysql_dbname, mysql_options)
+	msyql_dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", mysqlUsername,
+		mysqlPassword, mysqlAddress, mysqlDBname, mysqlOptions)
 
 	db, err := gorm.Open(mysql.Open(msyql_dsn), &gorm.Config{})
 	if err != nil {

@@ -50,8 +50,8 @@ var rootCmd = &cobra.Command{
 		address := config.Config.Listen
 
 		// init database and cache
-		config.DatabaseConnectAndSetup()
-		config.CacheConnectAndSetup()
+		config.DatabaseInit()
+		config.CacheInit()
 		models.ModelInit()
 
 		// start hystrix dashboard

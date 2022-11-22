@@ -27,17 +27,14 @@ func GetDynamicCacheConfig() *DynamicCacheConfig {
 }
 
 var Cache *cache.Cache
+var enableRedis bool
 
-func CacheConnectAndSetup() {
+func CacheInit() {
 
 	// get configurations
-	//EnableLocalCache = Config.Cache.EnableLocalCache
-	//EnableNullResultCache = Config.Cache.EnableNullResultCache
-	//CacheTTL = time.Second * time.Duration(Config.Cache.CacheTTL)
+	enableRedis = Config.Cache.EnableRedis
 
-	enable_redis := Config.Cache.EnableRedis
-
-	if enable_redis == true {
+	if enableRedis == true {
 		rdb := connect_redis()
 		Cache = cache.New(&cache.Options{
 			Redis:      rdb,
