@@ -27,37 +27,27 @@ func DatabaseInit() {
 	connMaxIdleTime = Config.Database.Pool.ConnMaxIdleTime
 	connMaxLifetime = Config.Database.Pool.ConnMaxLifetime
 
-	// connect and setup
-	databaseConnectAndSetup()
-}
-
-func DynamicMySQLCredsConfigHandler() {
-	if dbType != "mysql" {
-		return
-	}
-	// get dynamic mysql creds
-	creds := GetDynamicMySQLCredsConfig()
-	if creds.Username == mysqlUsername && creds.Password == mysqlPassword {
-		return
-	}
-
-	DBLocker.Lock()
-	defer DBLocker.Unlock()
-
-	mysqlUsername = creds.Username
-	mysqlPassword = creds.Password
-
-	databaseConnectAndSetup()
-}
-
-func databaseConnectAndSetup() {
-	// connect to database
+	// init database
 	if dbType == "mysql" {
-		db = connectMySQL()
+		db = initMySQL()
 	} else if dbType == "sqlite" {
-		db = connectSqlite()
+		db = initSqlite()
+	} else {
+		log.Fatalf("database.type (%s) not supported.\n", dbType)
 	}
+}
 
+func DynamicDatabaseConfigReload() {
+	if dbType == "mysql" {
+		DynamicMySQLConfigReload()
+	}
+	if dbType == "sqlite" {
+		DynamicSqliteConfigReload()
+	}
+}
+
+func setupDatabase(db *gorm.DB) {
+	// get sql.DB
 	sqlDB, err := db.DB()
 	if err != nil {
 		log.Fatal(err)

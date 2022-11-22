@@ -8,19 +8,38 @@ import (
 	"gorm.io/gorm"
 )
 
-func connectSqlite() *gorm.DB {
+var (
+	sqliteFilename string
+	sqliteOptions  string
+)
 
+func initSqlite() *gorm.DB {
 	// get configurations
-	sqliteFilename := Config.Database.Sqlite.Filename
-	sqliteOptions := Config.Database.Sqlite.Options
+	sqliteFilename = Config.Database.Sqlite.Filename
+	sqliteOptions = Config.Database.Sqlite.Options
+
+	// connect sqlite
+	d := connectSqlite()
+
+	// setup database
+	setupDatabase(d)
+
+	return d
+}
+
+func connectSqlite() *gorm.DB {
 
 	// sqlite3: PRAGMA foreign_keys = ON;
 	sqlite_dsn := fmt.Sprintf("file:%s?%s", sqliteFilename, sqliteOptions)
 
-	db, err := gorm.Open(sqlite.Open(sqlite_dsn), &gorm.Config{})
+	d, err := gorm.Open(sqlite.Open(sqlite_dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return db
+	return d
+}
+
+func DynamicSqliteConfigReload() {
+	return
 }

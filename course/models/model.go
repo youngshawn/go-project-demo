@@ -19,3 +19,7 @@ func ModelInit() {
 
 	Cache = config.GetCache()
 }
+
+func SetDB(d *gorm.DB) {
+	db = d
+}

@@ -31,8 +31,7 @@ var (
 	mysqlOptions  string
 )
 
-func connectMySQL() *gorm.DB {
-
+func initMySQL() *gorm.DB {
 	// get configurations
 	mysqlUsername = Config.Database.MySQL.Username
 	mysqlPassword = Config.Database.MySQL.Password
@@ -40,12 +39,43 @@ func connectMySQL() *gorm.DB {
 	mysqlDBname = Config.Database.MySQL.DBname
 	mysqlOptions = Config.Database.MySQL.Options
 
+	// connect mysql
+	d := connectMySQL()
+
+	// setup database
+	setupDatabase(d)
+
+	return d
+}
+
+func connectMySQL() *gorm.DB {
 	msyql_dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", mysqlUsername,
 		mysqlPassword, mysqlAddress, mysqlDBname, mysqlOptions)
 
-	db, err := gorm.Open(mysql.Open(msyql_dsn), &gorm.Config{})
+	d, err := gorm.Open(mysql.Open(msyql_dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	return db
+	return d
+}
+
+func DynamicMySQLConfigReload() {
+
+	// get dynamic mysql creds
+	creds := GetDynamicMySQLCredsConfig()
+	if creds.Username == mysqlUsername && creds.Password == mysqlPassword {
+		return
+	}
+
+	DBLocker.Lock()
+	defer DBLocker.Unlock()
+
+	mysqlUsername = creds.Username
+	mysqlPassword = creds.Password
+
+	// re-init mysql
+	d := connectMySQL()
+	setupDatabase(d)
+
+	db = d
 }

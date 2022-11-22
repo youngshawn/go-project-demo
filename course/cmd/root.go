@@ -140,23 +140,31 @@ func initConfig() {
 
 	// watch local config-file
 	viper.OnConfigChange(func(e fsnotify.Event) {
-		config.ViperLocker.Lock()
-		defer config.ViperLocker.Unlock()
+		// update config
+		func() {
+			config.ViperLocker.Lock()
+			defer config.ViperLocker.Unlock()
 
-		log.Println("Local config file changed:", e.Name)
-		if err := viper.ReadInConfig(); err != nil {
-			log.Println("Read local config file failed, error:", err)
-			return
-		}
-		log.Println("Read local config file succeed.")
+			log.Println("Local config file changed:", e.Name)
+			if err := viper.ReadInConfig(); err != nil {
+				log.Println("Read local config file failed, error:", err)
+				return
+			}
+			log.Println("Read local config file succeed.")
 
-		config.ConfigLocker.Lock()
-		defer config.ConfigLocker.Unlock()
-		if err := viper.Unmarshal(&config.Config); err != nil {
-			log.Println("Unmarshal config failed, error:", err)
-			return
-		}
-		log.Println("Unmarshal config succeed.")
+			config.ConfigLocker.Lock()
+			defer config.ConfigLocker.Unlock()
+			if err := viper.Unmarshal(&config.Config); err != nil {
+				log.Println("Unmarshal config failed, error:", err)
+				return
+			}
+			log.Println("Unmarshal config succeed.")
+		}()
+
+		// dynamic config reload
+		config.DynamicDatabaseConfigReload()
+		models.SetDB(config.GetDB())
+		log.Println("Dynamic config reloaded.")
 	})
 	viper.WatchConfig()
 
