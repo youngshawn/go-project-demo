@@ -21,4 +21,4 @@
 course.yaml
 
 # Temperary file
-.tmp
+*.tmp
