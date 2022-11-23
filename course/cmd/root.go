@@ -141,14 +141,14 @@ func initConfig() {
 	// watch local config-file
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		// update config
-		func() {
+		err := func() error {
 			config.ViperLocker.Lock()
 			defer config.ViperLocker.Unlock()
 
 			log.Println("Local config file changed:", e.Name)
 			if err := viper.ReadInConfig(); err != nil {
 				log.Println("Read local config file failed, error:", err)
-				return
+				return err
 			}
 			log.Println("Read local config file succeed.")
 
@@ -156,10 +156,15 @@ func initConfig() {
 			defer config.ConfigLocker.Unlock()
 			if err := viper.Unmarshal(&config.Config); err != nil {
 				log.Println("Unmarshal config failed, error:", err)
-				return
+				return err
 			}
 			log.Println("Unmarshal config succeed.")
+			return nil
 		}()
+
+		if err != nil {
+			return
+		}
 
 		// dynamic config reload
 		config.DynamicDatabaseConfigReload()

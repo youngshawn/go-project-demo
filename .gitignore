@@ -16,3 +16,9 @@
 
 # Test database
 *.db
+
+# Secrets file
+course.yaml
+
+# Temperary file
+.tmp
