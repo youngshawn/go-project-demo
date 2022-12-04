@@ -328,6 +328,10 @@ func GetTeacherByCourseId2(Id uint) (*Teacher, error) {
 		return nil, ErrorObjectNotFound
 	}
 
+	if err == nil {
+		teacher.Decrypt()
+	}
+
 	return &teacher, err
 }
 
@@ -373,6 +377,10 @@ func GetTeacherByCourseId(Id uint) (*Teacher, error) {
 
 	if err == ErrorObjectNotFound || err == nil && teacher.ID == 0 {
 		return nil, ErrorObjectNotFound
+	}
+
+	if err == nil {
+		teacher.Decrypt()
 	}
 
 	return &teacher, err

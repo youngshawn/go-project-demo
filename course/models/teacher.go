@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/afex/hystrix-go/hystrix"
@@ -19,8 +20,45 @@ type Teacher struct {
 	Age     int    `json:"age"`
 	Subject string `json:"subject"`
 
-	IDcard string `json:"idcard" gorm:"unique"`
-	Phone  string `json:"phone"`
+	IDcard string `json:"-" gorm:"unique"`
+	Phone  string `json:"-"`
+
+	PlainIDcard string `json:"idcard" gorm:"-" msgpack:"-"`
+	PlainPhone  string `json:"phone" gorm:"-" msgpack:"-"`
+}
+
+func (t *Teacher) Encrypt() error {
+	if t.IDcard == "" {
+		t.IDcard = t.PlainIDcard + "_encrypted"
+	}
+
+	if t.Phone == "" {
+		t.Phone = t.PlainPhone + "_encrypted"
+	}
+
+	log.Printf("teacher.Encrypt called")
+
+	return nil
+}
+
+func (t *Teacher) Decrypt() error {
+	if t.PlainIDcard == "" {
+		strs1 := strings.Split(t.IDcard, "_encrypted")
+		t.PlainIDcard = strs1[0]
+	}
+
+	if t.PlainPhone == "" {
+		strs2 := strings.Split(t.Phone, "_encrypted")
+		t.PlainPhone = strs2[0]
+	}
+
+	log.Printf("teacher.Decrypt called")
+
+	return nil
+}
+
+func (t *Teacher) BeforeSave(*gorm.DB) error {
+	return t.Encrypt()
 }
 
 func (t *Teacher) CreateTeacher() error {
@@ -170,6 +208,10 @@ func GetAllTeachers() ([]Teacher, error) {
 		err = ErrorObjectNotFound
 	}
 
+	for idx := range teachers {
+		teachers[idx].Decrypt()
+	}
+
 	return teachers, err
 }
 
@@ -203,6 +245,10 @@ func GetTeacherById(Id uint) (*Teacher, error) {
 
 	if err == ErrorObjectNotFound || err == nil && teacher.ID == 0 {
 		return nil, ErrorObjectNotFound
+	}
+
+	if err == nil {
+		teacher.Decrypt()
 	}
 
 	return &teacher, err
