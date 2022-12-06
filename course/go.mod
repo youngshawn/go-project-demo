@@ -8,6 +8,8 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-redis/cache/v9 v9.0.0-beta.1
 	github.com/go-redis/redis/v9 v9.0.0-rc.1
+	github.com/hashicorp/vault/api v1.8.2
+	github.com/hashicorp/vault/api/auth/approle v0.3.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.13.0
 	gorm.io/driver/mysql v1.4.3
@@ -57,8 +59,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/serf v0.9.7 // indirect
-	github.com/hashicorp/vault/api v1.8.2 // indirect
-	github.com/hashicorp/vault/api/auth/approle v0.3.0 // indirect
 	github.com/hashicorp/vault/sdk v0.6.0 // indirect
 	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect

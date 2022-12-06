@@ -2,9 +2,10 @@ package models
 
 import (
 	"context"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/afex/hystrix-go/hystrix"
@@ -28,32 +29,76 @@ type Teacher struct {
 }
 
 func (t *Teacher) Encrypt() error {
-	if t.IDcard == "" {
-		t.IDcard = t.PlainIDcard + "_encrypted"
+	if t.IDcard != "" && t.Phone != "" {
+		log.Printf("teacher.Encrypt already called, return")
+		return nil
 	}
 
-	if t.Phone == "" {
-		t.Phone = t.PlainPhone + "_encrypted"
+	path := fmt.Sprintf("/transit/encrypt/%s", config.VaultTransitKey)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	resp, err := Vault.Logical().WriteWithContext(ctx, path, map[string]interface{}{
+		"batch_input": []map[string]interface{}{
+			{
+				"plaintext": base64.StdEncoding.EncodeToString([]byte(t.PlainIDcard)),
+			},
+			{
+				"plaintext": base64.StdEncoding.EncodeToString([]byte(t.PlainPhone)),
+			},
+		},
+	})
+	if err != nil {
+		log.Printf("teacher.Encrypt failed to encrypt data")
+		return err
 	}
+
+	t.IDcard = resp.Data["batch_results"].([]interface{})[0].(map[string]interface{})["ciphertext"].(string)
+	t.Phone = resp.Data["batch_results"].([]interface{})[1].(map[string]interface{})["ciphertext"].(string)
 
 	log.Printf("teacher.Encrypt called")
-
 	return nil
 }
 
 func (t *Teacher) Decrypt() error {
-	if t.PlainIDcard == "" {
-		strs1 := strings.Split(t.IDcard, "_encrypted")
-		t.PlainIDcard = strs1[0]
+	if t.PlainIDcard != "" && t.PlainPhone != "" {
+		log.Printf("teacher.Decrypt already called, return")
+		return nil
 	}
 
-	if t.PlainPhone == "" {
-		strs2 := strings.Split(t.Phone, "_encrypted")
-		t.PlainPhone = strs2[0]
+	path := fmt.Sprintf("/transit/decrypt/%s", config.VaultTransitKey)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	resp, err := Vault.Logical().WriteWithContext(ctx, path, map[string]interface{}{
+		"batch_input": []map[string]interface{}{
+			{
+				"ciphertext": t.IDcard,
+			},
+			{
+				"ciphertext": t.Phone,
+			},
+		},
+	})
+	if err != nil {
+		log.Printf("teacher.Decrypt failed to decrypt data")
+		return err
 	}
+
+	IDcard_base64 := resp.Data["batch_results"].([]interface{})[0].(map[string]interface{})["plaintext"].(string)
+	Phone_base64 := resp.Data["batch_results"].([]interface{})[1].(map[string]interface{})["plaintext"].(string)
+	IDcard, err1 := base64.StdEncoding.DecodeString(IDcard_base64)
+	Phone, err2 := base64.StdEncoding.DecodeString(Phone_base64)
+	if err1 != nil || err2 != nil {
+		log.Printf("teacher.Decrypt failed to base64 decode")
+		return errors.New("base64 decode error")
+	}
+	t.PlainIDcard = string(IDcard)
+	t.PlainPhone = string(Phone)
 
 	log.Printf("teacher.Decrypt called")
-
 	return nil
 }
 
