@@ -62,6 +62,17 @@ type config struct {
 		Path     string
 		Format   string
 	}
+	Vault struct {
+		Address string
+		Auth    struct {
+			RoleIdFilePath   string `mapstructure:"roleid-file-path"`
+			SecretIdFilePath string `mapstructure:"secretid-file-path"`
+			Wrapped          bool
+		}
+		Transit struct {
+			Key string
+		}
+	}
 }
 
 func init() {
@@ -100,6 +111,11 @@ func init() {
 	viper.SetDefault("remoteconfig.endpoint", "127.0.0.1:2379")
 	viper.SetDefault("remoteconfig.path", "/config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml")
 	viper.SetDefault("remoteconfig.format", "yaml")
+	viper.SetDefault("vault.address", "http://127.0.0.1:8200")
+	viper.SetDefault("vault.auth.roleid-file-path", "~/.course-roleid")
+	viper.SetDefault("vault.auth.secretid-file-path", "~/.course-secretid")
+	viper.SetDefault("vault.auth.wrapped", false)
+	viper.SetDefault("vault.transit.key", "course")
 }
 
 func ExposeConfigAsPFlags(cmd *cobra.Command) {
@@ -110,7 +126,7 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags.String("database.sqlite.options", "", "sqlite options (default is '_foreign_keys=on')")
 	pflags.String("database.mysql.username", "", "mysql username")
 	pflags.String("database.mysql.password", "", "mysql password")
-	pflags.String("database.mysql.address", "", ",mysql address (default is '127.0.0.1:3306')")
+	pflags.String("database.mysql.address", "", "mysql address (default is '127.0.0.1:3306')")
 	pflags.String("database.mysql.dbname", "", "mysql db name (default is 'course')")
 	pflags.String("database.mysql.options", "", "mysql options (default is 'charset=utf8mb4&parseTime=True&loc=Local')")
 	pflags.Uint("database.pool.max-idle-conns", 0, "database connection pool max-idle-conns (default is 10)")
@@ -138,4 +154,9 @@ func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags.String("remoteconfig.endpoint", "", "remote config endpoint (default is '127.0.0.1:2379')")
 	pflags.String("remoteconfig.path", "", "remote config path (default is '/config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml')")
 	pflags.String("remoteconfig.format", "", "remote config format (default is 'yaml')")
+	pflags.String("vault.address", "", "vault address (default is 'http://127.0.0.1:8200')")
+	pflags.String("vault.auth.roleid-file-path", "", "vault approle roleid file path (default is '~/.course-roleid')")
+	pflags.String("vault.auth.secretid-file-path", "", "vault approle secretid file path (default is '~/.course-secretid')")
+	pflags.Bool("vault.auth.wrapped", false, "if secretid is wrapped (default is false)")
+	pflags.String("vault.transit.key", "", "vault transit key name (default is 'course')")
 }

@@ -45,3 +45,12 @@ cache:
       max-idle-conns: 10
       conn-max-idle-time: 600
       conn-max-life-time: 3600
+
+vault:
+  address: http://127.0.0.1:8200
+  transit:
+    key: course
+  auth:
+    roleid-file: ~/.course-roleid
+    secretid-file: ~/.course-secretid
+    wrapped: false

@@ -52,6 +52,7 @@ var rootCmd = &cobra.Command{
 		// init database and cache
 		config.DatabaseInit()
 		config.CacheInit()
+		config.VaultInit()
 		models.ModelInit()
 
 		// start hystrix dashboard
