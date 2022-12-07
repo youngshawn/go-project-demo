@@ -36,7 +36,8 @@ func VaultInit() {
 	// create vault client
 	config := vault.DefaultConfig()
 	config.Address = vaultAddress
-	VaultClient, err := vault.NewClient(config)
+	var err error
+	VaultClient, err = vault.NewClient(config)
 	if err != nil {
 		log.Fatalf("Failed to create vault client, err: %v", err)
 	}
@@ -92,6 +93,7 @@ func login(client *vault.Client) (*vault.Secret, error) {
 		return nil, fmt.Errorf("no auth info was returned after login")
 	}
 
+	log.Printf("Successfully (re)logined, lease duration: %ds", authInfo.Auth.LeaseDuration)
 	return authInfo, nil
 }
 
@@ -130,7 +132,7 @@ func renew(client *vault.Client, token *vault.Secret) error {
 
 		// Successfully completed renewal
 		case renewal := <-watcher.RenewCh():
-			log.Printf("Successfully renewed: %#v", renewal)
+			log.Printf("Successfully renewed, lease duration: %ds", renewal.Secret.Auth.LeaseDuration)
 		}
 	}
 }
