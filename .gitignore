@@ -22,3 +22,6 @@ course.yaml
 
 # Temperary file
 *.tmp
+
+# Makefile output
+_output
