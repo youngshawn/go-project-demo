@@ -120,7 +120,7 @@ func init() {
 
 func ExposeConfigAsPFlags(cmd *cobra.Command) {
 	pflags := cmd.PersistentFlags()
-	pflags.String("listen", "", "server address (default is ':8080')")
+	pflags.StringP("listen", "l", "", "server address (default is ':8080')")
 	pflags.String("database.type", "", "database type, sqlite or mysql (default is 'sqlite')")
 	pflags.String("database.sqlite.filename", "", "sqlite db filename (default is './course.db')")
 	pflags.String("database.sqlite.options", "", "sqlite options (default is '_foreign_keys=on')")

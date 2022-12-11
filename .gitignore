@@ -19,9 +19,11 @@
 
 # Secrets file
 course.yaml
+role/
+agent-conf/
 
 # Temperary file
 *.tmp
 
 # Makefile output
-_output
+dist/

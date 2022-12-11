@@ -82,7 +82,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.course.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.course.yaml)")
 
 	// set pflags from config.config struct
 	config.ExposeConfigAsPFlags(rootCmd)

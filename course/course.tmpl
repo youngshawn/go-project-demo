@@ -1,9 +1,9 @@
-listen: :3000
+listen: :8080
 
 remoteconfig:
   enable: true
   provider: etcd3
-  endpoint: 127.0.0.1:2379
+  endpoint: etcd-course:2379
   path: /config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml
   format: yaml
 
@@ -17,7 +17,7 @@ database:
     username: {{ .Data.username }}
     password: {{ .Data.password }}
     {{- end }}
-    address : 127.0.0.1:3306
+    address : mysql-course:3306
     dbname  : course
     options : charset=utf8mb4&parseTime=True&loc=Local
   pool:
@@ -32,7 +32,7 @@ cache:
   #enable-null-result-cache: true
   #cache-ttl: 3600
   redis:
-    address: 127.0.0.1:6379
+    address: redis-course:6379
     password: ""
     db     : 0
     max-retries: 1
@@ -47,10 +47,10 @@ cache:
       conn-max-life-time: 3600
 
 vault:
-  address: http://127.0.0.1:8200
+  address: http://vault-course:8200
   transit:
     key: course
   auth:
-    roleid-file-path: /tmp/.course-roleid
-    secretid-file-path: /tmp/.course-secretid
+    roleid-file-path: /app/role/course-roleid
+    secretid-file-path: /app/role/course-secretid
     wrapped: false

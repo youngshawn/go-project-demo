@@ -1,11 +1,11 @@
-pid_file = "/tmp/pidfile"
+pid_file = "/tmp/pidfile2"
 
 auto_auth {
   method {
     type   = "approle"
     config = {
-      role_id_file_path = "/tmp/.course-roleid"
-      secret_id_file_path = "/tmp/.course-secretid"
+      role_id_file_path = "/vault/config/course-roleid"
+      secret_id_file_path = "/vault/config/course-secretid"
       remove_secret_id_file_after_reading = false
     }
   }
@@ -18,7 +18,7 @@ auto_auth {
 }
 
 vault {
-  address = "http://127.0.0.1:8200"
+  address = "http://vault-course:8200"
 }
 
 template_config {
@@ -28,10 +28,10 @@ template_config {
 
 template {
   error_on_missing_key = true
-  source = "./course.tmpl"
-  destination = "./course.yaml.tmp"
+  source = "/vault/config/course.tmpl"
+  destination = "/vault/file/course.yaml.tmp"
   exec {
-    command = ["cp", "./course.yaml.tmp", "./course.yaml" ]
+    command = ["cp", "/vault/file/course.yaml.tmp", "/vault/file/course.yaml" ]
     timeout = "5s"
   }
 }
