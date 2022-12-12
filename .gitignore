@@ -19,11 +19,12 @@
 
 # Secrets file
 course.yaml
-role/
-agent-conf/
 
 # Temperary file
 *.tmp
 
 # Makefile output
 dist/
+
+# Local Run
+local-run-in-docker/
