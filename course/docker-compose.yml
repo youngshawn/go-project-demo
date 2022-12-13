@@ -1,0 +1,29 @@
+version: '3.9'
+
+networks:
+  network-course: {}
+
+services:
+  mysql-course:
+    image: mysql/mysql-server:5.7
+    networks:
+      - network-course
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_DATABASE=course
+      - MYSQL_USER=course_user
+      - MYSQL_USER_HOST=%
+      - MYSQL_PASSWORD=c_u_passw0rd
+  
+
+
+
+
+    
+
+

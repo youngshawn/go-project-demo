@@ -23,7 +23,6 @@ vault {
 
 template_config {
   exit_on_retry_failure = true
-  
 }
 
 template {
@@ -31,7 +30,7 @@ template {
   source = "/vault/config/appconf/course.tmpl"
   destination = "/vault/config/appconf/course.yaml.tmp"
   exec {
-    command = ["cp", "/vault/config/appconf/course.yaml.tmp", "/vault/config/appconf/course.yaml" ]
+    command = ["dd", "if=/vault/config/appconf/course.yaml.tmp", "of=/vault/config/appconf/course.yaml" ]
     timeout = "5s"
   }
 }
