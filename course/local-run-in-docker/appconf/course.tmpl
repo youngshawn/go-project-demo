@@ -1,0 +1,56 @@
+listen: :8080
+
+remoteconfig:
+  enable: true
+  provider: etcd3
+  endpoint: etcd-course:2379
+  path: /config/prod/cloud/region/github.com/youngshawn/go-proect-demo/course/course.yaml
+  format: yaml
+
+database:
+  type: mysql
+  sqlite:
+    filename: course.db
+    options: _foreign_keys=on
+  mysql:
+    {{- with secret "database/creds/course-all" }}
+    username: {{ .Data.username }}
+    password: {{ .Data.password }}
+    {{- end }}
+    address : mysql-course:3306
+    dbname  : course
+    options : charset=utf8mb4&parseTime=True&loc=Local
+  pool:
+    max-open-conns: 100
+    max-idle-conns: 10
+    conn-max-idle-time: 300
+    conn-max-life-time: 3600
+
+cache:
+  enable-redis: true
+  #enable-local-cache: true
+  #enable-null-result-cache: true
+  #cache-ttl: 3600
+  redis:
+    address: redis-course:6379
+    password: ""
+    db     : 0
+    max-retries: 1
+    pool-timeout: 3
+    dial-timeout: 2
+    read-timeout: 2
+    write-timeout: 1
+    pool:
+      pool-size: 100
+      max-idle-conns: 10
+      conn-max-idle-time: 600
+      conn-max-life-time: 3600
+
+vault:
+  address: http://vault-course:8200
+  transit:
+    key: course
+  auth:
+    roleid-file-path: /app/role/course-roleid
+    secretid-file-path: /app/role/course-secretid
+    wrapped: false
