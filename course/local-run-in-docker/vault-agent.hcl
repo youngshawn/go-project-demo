@@ -1,5 +1,21 @@
 pid_file = "/tmp/pidfile"
 
+vault {
+  address = "http://vault-course:8200"
+  retry {
+    num_retries = 5
+  }
+}
+
+listener "tcp" {
+  address = "127.0.0.1:8201"
+  tls_disable = true
+}
+
+cache {
+  use_auto_auth_token = true
+}
+
 auto_auth {
   method {
     type   = "approle"
@@ -15,10 +31,6 @@ auto_auth {
           path = "/tmp/.vault-token-via-agent"
       }
   }
-}
-
-vault {
-  address = "http://vault-course:8200"
 }
 
 template_config {

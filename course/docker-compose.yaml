@@ -46,23 +46,38 @@ services:
       - "2379:2379"
       - "2380:2380"
     volumes:
-      - etcd-data:/etcd-data:rw
+      - etcd-data:/etcd-data
     command: 
       - /usr/local/bin/etcd
       - --data-dir=/etcd-data
       - --name=node
-      - --initial-cluster node=http://127.0.0.1:2380 \
-      - --listen-peer-urls http://0.0.0.0:2380 \
-      - --initial-advertise-peer-urls http://127.0.0.1:2380 \
-      - --listen-client-urls http://0.0.0.0:2379 \
-      - --advertise-client-urls http://127.0.0.1:2379
+      - --initial-cluster=node=http://127.0.0.1:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://127.0.0.1:2380
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://127.0.0.1:2379
     healthcheck:
       test: ["CMD", "etcdctl", "endpoint", "health"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 30s
-  
+
+  course-etcd-init:
+    image: quay.io/coreos/etcd:v3.5.6
+    restart: "no"
+    networks:
+      - network-course
+    volumes:
+      - ./local-run-in-docker/init-scripts/config-etcd.sh:/config-etcd.sh:ro
+      - ./local-run-in-docker/remote-course.yaml:/remote-course.yaml:ro
+    environment:
+      - ETCDCTL_ENDPOINTS=http://etcd-course:2379
+    entrypoint: ["sh", "/config-etcd.sh"]
+    depends_on:
+      etcd-course:
+        condition: service_healthy
+    
   vault-server:
     image: vault
     networks:
@@ -71,6 +86,8 @@ services:
       - "8200:8200"
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=myroot
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_TOKEN=myroot
     cap_add:
       - IPC_LOCK
     healthcheck:
@@ -79,6 +96,22 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  course-vault-init:
+    image: vault
+    restart: "no"
+    networks:
+      - network-course
+    volumes:
+      - ./local-run-in-docker/init-scripts/config-vault.sh:/vault/file/config-vault.sh:ro
+      - ./local-run-in-docker/approle:/vault/file/approle:rw
+    environment:
+      - VAULT_ADDR=http://vault-server:8200
+      - VAULT_TOKEN=myroot
+    entrypoint: ["sh", "-c", "/vault/file/config-vault.sh"]
+    depends_on:
+      vault-server:
+        condition: service_healthy
     
   vault-agent-course:
     image: vault
@@ -94,9 +127,18 @@ services:
     depends_on:
       vault-server:
         condition: service_healthy
+      course-vault-init:
+        condition: service_completed_successfully
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8201
+    healthcheck:
+      test: ["CMD", "vault", "read", "sys/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   course:
-    build: .
     image: youngshawn/course
     networks:
       - network-course
@@ -116,6 +158,10 @@ services:
         condition: service_healthy
       vault-agent-course:
         condition: service_healthy
+      course-vault-init:
+        condition: service_completed_successfully
+      course-etcd-init:
+        condition: service_completed_successfully
 
 
 

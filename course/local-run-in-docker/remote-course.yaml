@@ -1,0 +1,4 @@
+cache:
+  enable-local-cache: false
+  enable-null-result-cache: true
+  cache-ttl: 3600
