@@ -10,7 +10,7 @@ vault write database/config/mysql-course \
     password="root"
 vault write database/roles/course-all \
     db_name=mysql-course \
-    creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}'; GRANT SELECT, INSERT, DELETE, UPDATE ON course.* TO '{{name}}'@'%';" \
+    creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}'; GRANT CREATE, REFERENCES, SELECT, INSERT, DELETE, UPDATE ON course.* TO '{{name}}'@'%';" \
     default_ttl="2m" \
     max_ttl="10m"
 

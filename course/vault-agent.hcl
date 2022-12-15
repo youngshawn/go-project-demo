@@ -1,7 +1,7 @@
 pid_file = "/tmp/pidfile"
 
 vault {
-  address = "http://vault-course:8200"
+  address = "http://vault-server:8200"
   retry {
     num_retries = 5
   }

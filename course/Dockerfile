@@ -1,6 +1,9 @@
 # build from alpine
 FROM alpine:latest
 
+# install curl
+RUN apk add curl
+
 # make workdir
 RUN mkdir /app
 WORKDIR /app/
