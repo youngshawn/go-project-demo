@@ -1,61 +1,87 @@
-.DEFAULT_GOAL=help
-BINARY_NAME=course
-OUTPUT_DIR=dist
+.DEFAULT_GOAL := help
+BINARY_NAME := course
+OUTPUT_DIR := dist
+GIT_TAG ?=
 
-.PHONY: deps test build cross image clean help
+.PHONY: checkout deps test build run image docker-run cross-build cross-image integration-test release-binary release-image release clean help
 
-
-deps:
-	go mod download
-
-test-unit: deps
-	go test ./...
 
 ${OUTPUT_DIR}:
 	mkdir -p ${OUTPUT_DIR}
 
-build: deps ${OUTPUT_DIR}
-	go build -o ${OUTPUT_DIR}/${BINARY_NAME} .
+checkout:
+ifneq (${GIT_TAG},)
+	git checkout ${GIT_TAG}
+endif
+	$(eval GIT_TAG := $(shell git describe --tags 2>/dev/null))
+ifeq (${GIT_TAG},)
+	$(eval GIT_TAG := latest)
+endif
 
-build-cross: deps ${OUTPUT_DIR}
-	GOARCH=amd64 GOOS=darwin go build -o ${OUTPUT_DIR}/${BINARY_NAME}-darwin-amd64 .
-	GOARCH=arm64 GOOS=darwin go build -o ${OUTPUT_DIR}/${BINARY_NAME}-darwin-arm64 .
-	GOARCH=amd64 GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}-linux-amd64 .
-	GOARCH=arm64 GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}-linux-arm64 .
+deps: checkout
+	go mod download
 
-image: ${OUTPUT_DIR}
-	GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}-linux .
-	docker build -t youngshawn/course:latest -f Dockerfile .
+test: checkout deps
+	go test ./...
 
-image-cross: cross ${OUTPUT_DIR}
+build: checkout deps ${OUTPUT_DIR}
+	go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG} .
+
+run: checkout build
+	./course_${GIT_TAG} --config course.yaml
+
+image: checkout deps ${OUTPUT_DIR}
+	GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_linux .
+	docker build -t youngshawn/course:${GIT_TAG} -f Dockerfile --build-arg VERSION=${GIT_TAG} .
+
+docker-run: checkout image
+	IMG_TAG=${GIT_TAG} docker-compose up -d
+
+cross-build: checkout deps ${OUTPUT_DIR}
+	GOARCH=amd64 GOOS=darwin go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_darwin_amd64 .
+	GOARCH=arm64 GOOS=darwin go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_darwin_arm64 .
+	GOARCH=amd64 GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_linux_amd64 .
+	GOARCH=arm64 GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_linux_arm64 .
+
+cross-image: checkout cross-build ${OUTPUT_DIR}
 	echo "ToDo"
 
-local-run: image
-	echo "ToDo"
-#	docker-compose up
-
-test-integration: local-run
+integration-test: docker-run
 	echo "ToDo"
 
-release-binary:
+release-binary: cross-build
 	echo "ToDo"
 
-release-image:
+release-image: cross-image
 	echo "ToDo"
 
 release: release-binary release-image
-	echo "release: binary, image"
+	echo "ToDo"
 
 clean:
 	go clean
 	rm -rf ${OUTPUT_DIR}
 
+define MAKE_HELP_INFO
+Usage: make <Target>
+
+Targets:
+    [help]              display this help info
+    deps                download go dependency modules
+    test                run go test
+    build               run go build for local platform
+	run                 run locally in host
+	image               docker build image with Dockerfile
+	docker-run          run locally in docker
+	cross-build         run go build for multiple platforms
+	cross-image         ToDo: build multiple platform images
+	integration-test    ToDo: run integration test
+	release-binary      ToDo: release binaries
+	release-image       ToDo: release images
+	release             ToDo: release binaries and images
+	clean               run go clean and remove output files
+
+endef
+export MAKE_HELP_INFO
 help:
-	@echo "Usage:"
-	@echo "    make [help]:  display this info"
-	@echo "    make deps:    only dowload dependencies"
-	@echo "    make test:    go test"
-	@echo "    make build:   go build"
-	@echo "    make cross:   go cross build"
-	@echo "    make image:   docker build image"
-	@echo "    make clean:   run go clean and remove files"
+	@echo "$$MAKE_HELP_INFO"

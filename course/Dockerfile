@@ -1,6 +1,8 @@
 # build from alpine
 FROM alpine:latest
 
+ARG VERSION=latest
+
 # install curl
 RUN apk add curl
 
@@ -9,7 +11,7 @@ RUN mkdir /app
 WORKDIR /app/
 
 # copy binary
-COPY dist/course-linux /app/course
+COPY dist/course_${VERSION}_linux /app/course
 
 # volume for conf and approle
 VOLUME [ "/app/conf", "/app/role" ]
