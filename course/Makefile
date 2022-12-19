@@ -1,13 +1,15 @@
 .DEFAULT_GOAL := help
-BINARY_NAME := course
-OUTPUT_DIR := dist
+MODULE_NAME := course
+DIST_DIR := dist
+BINARY_NAME := ${MODULE_NAME}
+IMAGE_NAME := ${MODULE_NAME}
 GIT_TAG ?=
 
 .PHONY: checkout deps test build run image docker-run cross-build cross-image integration-test release-binary release-image release clean help
 
 
-${OUTPUT_DIR}:
-	mkdir -p ${OUTPUT_DIR}
+${DIST_DIR}:
+	mkdir -p ${DIST_DIR}
 
 checkout:
 ifneq (${GIT_TAG},)
@@ -24,26 +26,26 @@ deps: checkout
 test: checkout deps
 	go test ./...
 
-build: checkout deps ${OUTPUT_DIR}
-	go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG} .
+build: checkout deps ${DIST_DIR}
+	go build -o ${DIST_DIR}/${BINARY_NAME}_${GIT_TAG} .
 
 run: checkout build
-	./course_${GIT_TAG} --config course.yaml
+	${DIST_DIR}/${BINARY_NAME}_${GIT_TAG} --config course.yaml
 
-image: checkout deps ${OUTPUT_DIR}
-	GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_linux .
-	docker build -t youngshawn/course:${GIT_TAG} -f Dockerfile --build-arg VERSION=${GIT_TAG} .
+image: checkout deps ${DIST_DIR}
+	GOOS=linux  go build -o ${DIST_DIR}/${BINARY_NAME}_${GIT_TAG}_linux .
+	docker build -t youngshawn/${IMAGE_NAME}:${GIT_TAG} -f Dockerfile --build-arg GIT_TAG=${GIT_TAG}  .
 
 docker-run: checkout image
-	IMG_TAG=${GIT_TAG} docker-compose up -d
+	GIT_TAG=${GIT_TAG} docker-compose -f docker-compose.yaml up -d
 
-cross-build: checkout deps ${OUTPUT_DIR}
-	GOARCH=amd64 GOOS=darwin go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_darwin_amd64 .
-	GOARCH=arm64 GOOS=darwin go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_darwin_arm64 .
-	GOARCH=amd64 GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_linux_amd64 .
-	GOARCH=arm64 GOOS=linux  go build -o ${OUTPUT_DIR}/${BINARY_NAME}_${GIT_TAG}_linux_arm64 .
+cross-build: checkout deps ${DIST_DIR}
+	GOARCH=amd64 GOOS=darwin go build -o ${DIST_DIR}/${BINARY_NAME}_${GIT_TAG}_darwin_amd64 .
+	GOARCH=arm64 GOOS=darwin go build -o ${DIST_DIR}/${BINARY_NAME}_${GIT_TAG}_darwin_arm64 .
+	GOARCH=amd64 GOOS=linux  go build -o ${DIST_DIR}/${BINARY_NAME}_${GIT_TAG}_linux_amd64 .
+	GOARCH=arm64 GOOS=linux  go build -o ${DIST_DIR}/${BINARY_NAME}_${GIT_TAG}_linux_arm64 .
 
-cross-image: checkout cross-build ${OUTPUT_DIR}
+cross-image: checkout cross-build ${DIST_DIR}
 	echo "ToDo"
 
 integration-test: docker-run
@@ -60,7 +62,7 @@ release: release-binary release-image
 
 clean:
 	go clean
-	rm -rf ${OUTPUT_DIR}
+	rm -rf ${DIST_DIR}
 
 define MAKE_HELP_INFO
 Usage: make <Target>
