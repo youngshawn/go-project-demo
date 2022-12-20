@@ -29,6 +29,7 @@ var rootCmd = &cobra.Command{
 	Use:   "course",
 	Short: "A Course Management system",
 	Long:  `A Course Management system`,
+	//Version: version,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// viper
@@ -82,6 +83,15 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	// version
+	rootCmd.Version = config.Version
+	rootCmd.SetVersionTemplate(fmt.Sprintf(`{{with .Name}}{{printf "%%s version info: " .}}{{end}}
+    {{printf "Version:    %%s" .Version}}
+    Git Commit: %s
+    Go version: %s
+    OS/Arch:    %s`, config.GitCommit, config.GoVersion, config.OsArch))
+
+	// pflags
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.course.yaml)")
 
 	// set pflags from config.config struct

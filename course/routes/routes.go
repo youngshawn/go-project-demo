@@ -6,7 +6,8 @@ import (
 )
 
 func InstallRoutes(router *gin.Engine) {
-	router.GET("/health", controllers.Health)
+	router.GET("/status", controllers.Status)
+	router.GET("/version", controllers.Version)
 	installCourseRouters(router)
 	installTeacherRouters(router)
 }

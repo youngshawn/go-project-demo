@@ -4,6 +4,15 @@ DIST_DIR := dist
 BIN_NAME := ${MODULE_NAME}
 IMG_NAME := ${MODULE_NAME}
 GIT_TAG ?=
+#GO_BUILD_CMD = go build -ldflags "-X github.com/youngshawn/go-project-demo/course/config.Version=${GIT_TAG}"
+
+define GO_BUILD_CMD
+go build -ldflags "-X github.com/youngshawn/go-project-demo/course/config.Version=${GIT_TAG} \
+                   -X github.com/youngshawn/go-project-demo/course/config.GoVersion=${GO_VERSION} \
+                   -X github.com/youngshawn/go-project-demo/course/config.GitCommit=${GIT_COMMIT} \
+				   -X github.com/youngshawn/go-project-demo/course/config.OsArch=${OS_ARCH}"
+endef
+
 
 .PHONY: checkout git-tag deps test build run image docker-run cross-build cross-image integration-test release-binary release-image release clean help
 
@@ -29,23 +38,23 @@ test: checkout deps
 	go test ./...
 
 build: checkout git-tag deps ${DIST_DIR}
-	go build -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG} .
+	${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG} .
 
 run: checkout git-tag build
 	${DIST_DIR}/${BIN_NAME}_${GIT_TAG} --config course.yaml
 
 image: checkout git-tag deps ${DIST_DIR}
-	GOOS=linux  go build -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux .
+	GOOS=linux  ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux .
 	docker build -t youngshawn/${IMG_NAME}:${GIT_TAG} -f Dockerfile --build-arg BIN_VERSION=${GIT_TAG}  .
 
 docker-run: checkout git-tag image
 	IMG_TAG=${GIT_TAG} docker-compose -f docker-compose.yaml up -d
 
 cross-build: checkout git-tag deps ${DIST_DIR}
-	GOARCH=amd64 GOOS=darwin go build -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_darwin_amd64 .
-	GOARCH=arm64 GOOS=darwin go build -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_darwin_arm64 .
-	GOARCH=amd64 GOOS=linux  go build -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux_amd64 .
-	GOARCH=arm64 GOOS=linux  go build -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux_arm64 .
+	GOARCH=amd64 GOOS=darwin ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_darwin_amd64 .
+	GOARCH=arm64 GOOS=darwin ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_darwin_arm64 .
+	GOARCH=amd64 GOOS=linux  ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux_amd64 .
+	GOARCH=arm64 GOOS=linux  ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux_arm64 .
 
 cross-image: checkout git-tag cross-build ${DIST_DIR}
 	@echo "ToDo"

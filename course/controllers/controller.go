@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/youngshawn/go-project-demo/course/config"
 )
 
 func initGinContext(ctx *gin.Context) {
@@ -12,8 +13,14 @@ func initGinContext(ctx *gin.Context) {
 	//ctx.Set("Config.Cache.EnableNullResultCache", config.EnableNullResultCache)
 }
 
-func Health(ctx *gin.Context) {
+func Status(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "application/json")
 	ctx.Writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(ctx.Writer).Encode(map[string]string{"status": "healthy"})
+}
+
+func Version(ctx *gin.Context) {
+	ctx.Writer.Header().Set("Content-Type", "application/json")
+	ctx.Writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(ctx.Writer).Encode(map[string]string{"version": config.Version})
 }

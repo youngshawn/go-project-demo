@@ -11,6 +11,13 @@ var Config config
 var ConfigLocker sync.RWMutex
 var ViperLocker sync.Mutex
 
+var (
+	Version   string
+	GitCommit string
+	GoVersion string
+	OsArch    string
+)
+
 type config struct {
 	Listen   string
 	Database struct {
