@@ -14,8 +14,7 @@ var ViperLocker sync.Mutex
 var (
 	Version   string
 	GitCommit string
-	GoVersion string
-	OsArch    string
+	BuildTime string
 )
 
 type config struct {

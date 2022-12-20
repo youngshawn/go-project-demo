@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -85,11 +86,13 @@ func init() {
 
 	// version
 	rootCmd.Version = config.Version
-	rootCmd.SetVersionTemplate(fmt.Sprintf(`{{with .Name}}{{printf "%%s version info: " .}}{{end}}
+	rootCmd.SetVersionTemplate(fmt.Sprintf(`{{with .Name}}{{printf "%%s version information: " .}}{{end}}
     {{printf "Version:    %%s" .Version}}
     Git Commit: %s
     Go version: %s
-    OS/Arch:    %s`, config.GitCommit, config.GoVersion, config.OsArch))
+    OS/Arch:    %s/%s
+    Build Time: %s
+`, config.GitCommit, runtime.Version(), runtime.GOOS, runtime.GOARCH, config.BuildTime))
 
 	// pflags
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.course.yaml)")

@@ -3,33 +3,32 @@ MODULE_NAME := course
 DIST_DIR := dist
 BIN_NAME := ${MODULE_NAME}
 IMG_NAME := ${MODULE_NAME}
-GIT_TAG ?=
-#GO_BUILD_CMD = go build -ldflags "-X github.com/youngshawn/go-project-demo/course/config.Version=${GIT_TAG}"
+CHECKOUT ?=
+VERSION = $(shell git describe --tags --always)
+GIT_COMMIT = $(shell git rev-parse --short HEAD)
+BUILD_TIME = $(shell date -R)
 
-define GO_BUILD_CMD
-go build -ldflags "-X github.com/youngshawn/go-project-demo/course/config.Version=${GIT_TAG} \
-                   -X github.com/youngshawn/go-project-demo/course/config.GoVersion=${GO_VERSION} \
-                   -X github.com/youngshawn/go-project-demo/course/config.GitCommit=${GIT_COMMIT} \
-				   -X github.com/youngshawn/go-project-demo/course/config.OsArch=${OS_ARCH}"
+define LDFLAGS
+"-X 'github.com/youngshawn/go-project-demo/course/config.Version=${VERSION}' \
+-X 'github.com/youngshawn/go-project-demo/course/config.GitCommit=${GIT_COMMIT}' \
+-X 'github.com/youngshawn/go-project-demo/course/config.BuildTime=${BUILD_TIME}'"
 endef
 
 
-.PHONY: checkout git-tag deps test build run image docker-run cross-build cross-image integration-test release-binary release-image release clean help
+.PHONY: show-vars checkout deps test build run image docker-run cross-build cross-image test-integration release-binary release-image release clean help
 
+show-vars:
+	@echo "VERSION = ${VERSION}"
+	@echo "GIT_COMMIT = ${GIT_COMMIT}"
+	@echo "BUILD_TIME = ${BUILD_TIME}"
 
 ${DIST_DIR}:
 	mkdir -p ${DIST_DIR}
 
 checkout:
-ifneq (${GIT_TAG},)
-	-git checkout ${GIT_TAG}
+ifneq (${CHECKOUT},)
+	-git checkout ${CHECKOUT}
 endif
-
-git-tag: checkout
-#        $(eval override GIT_TAG := $(shell git describe --tags 2>/dev/null || git branch --show-current))
-#        $(eval override GIT_TAG := $(if $(GIT_TAG),$(GIT_TAG),$(shell git describe --always)))
-	$(eval override GIT_TAG := $(shell git describe --tags --always))
-	@echo "GIT_TAG = ${GIT_TAG}"
 
 deps: checkout
 	go mod download
@@ -37,29 +36,29 @@ deps: checkout
 test: checkout deps
 	go test ./...
 
-build: checkout git-tag deps ${DIST_DIR}
-	${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG} .
+build: checkout deps ${DIST_DIR}
+	go build -ldflags ${LDFLAGS} -o ${DIST_DIR}/${BIN_NAME}_${VERSION} .
 
-run: checkout git-tag build
-	${DIST_DIR}/${BIN_NAME}_${GIT_TAG} --config course.yaml
+run: checkout build
+	${DIST_DIR}/${BIN_NAME}_${VERSION} --config course.yaml
 
-image: checkout git-tag deps ${DIST_DIR}
-	GOOS=linux  ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux .
-	docker build -t youngshawn/${IMG_NAME}:${GIT_TAG} -f Dockerfile --build-arg BIN_VERSION=${GIT_TAG}  .
+image: checkout deps ${DIST_DIR}
+	GOOS=linux  go build -ldflags ${LDFLAGS} -o ${DIST_DIR}/${BIN_NAME}_${VERSION}_linux .
+	docker build -t youngshawn/${IMG_NAME}:${VERSION} -f Dockerfile --build-arg BIN_VERSION=${VERSION}  .
 
-docker-run: checkout git-tag image
-	IMG_TAG=${GIT_TAG} docker-compose -f docker-compose.yaml up -d
+docker-run: checkout image
+	IMG_TAG=${VERSION} docker-compose -f docker-compose.yaml up -d
 
-cross-build: checkout git-tag deps ${DIST_DIR}
-	GOARCH=amd64 GOOS=darwin ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_darwin_amd64 .
-	GOARCH=arm64 GOOS=darwin ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_darwin_arm64 .
-	GOARCH=amd64 GOOS=linux  ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux_amd64 .
-	GOARCH=arm64 GOOS=linux  ${GO_BUILD_CMD} -o ${DIST_DIR}/${BIN_NAME}_${GIT_TAG}_linux_arm64 .
+cross-build: checkout deps ${DIST_DIR}
+	GOARCH=amd64 GOOS=darwin  go build -ldflags ${LDFLAGS} -o ${DIST_DIR}/${BIN_NAME}_${VERSION}_darwin_amd64 .
+	GOARCH=arm64 GOOS=darwin  go build -ldflags ${LDFLAGS} -o ${DIST_DIR}/${BIN_NAME}_${VERSION}_darwin_arm64 .
+	GOARCH=amd64 GOOS=linux   go build -ldflags ${LDFLAGS} -o ${DIST_DIR}/${BIN_NAME}_${VERSION}_linux_amd64 .
+	GOARCH=arm64 GOOS=linux   go build -ldflags ${LDFLAGS} -o ${DIST_DIR}/${BIN_NAME}_${VERSION}_linux_arm64 .
 
-cross-image: checkout git-tag cross-build ${DIST_DIR}
+cross-image: checkout cross-build ${DIST_DIR}
 	@echo "ToDo"
 
-integration-test: docker-run
+test-integration: docker-run
 	@echo "ToDo"
 
 release-binary: cross-build
@@ -71,18 +70,19 @@ release-image: cross-image
 release: release-binary release-image
 	@echo "ToDo"
 
-clean: git-tag
+clean:
 	go clean
 	rm -rf ${DIST_DIR}
-	-docker image rm youngshawn/${IMG_NAME}:${GIT_TAG}
-	-IMG_TAG=${GIT_TAG} docker-compose -f docker-compose.yaml down
+	-docker image rm youngshawn/${IMG_NAME}:${VERSION}
+	-IMG_TAG=${VERSION} docker-compose -f docker-compose.yaml down
 
 define MAKE_HELP_INFO
-Usage: make <Target> [GIT_TAG=<git-tag>]
+Usage: make <Target> [CHECKOUT=<branch|tag|commit>]
 
 Targets:
 	[help]              display this help info
-	checkout            run git checkout GIT_TAG 
+	show-vars           show variables
+	checkout            run git checkout CHECKOUT 
 	deps                download go dependency modules
 	test                run go test
 	build               run go build for local platform
@@ -91,7 +91,7 @@ Targets:
 	docker-run          run locally in docker
 	cross-build         run go build for multiple platforms
 	cross-image         ToDo: build multiple platform images
-	integration-test    ToDo: run integration test
+	test-integration    ToDo: run integration test
 	release-binary      ToDo: release binaries
 	release-image       ToDo: release images
 	release             ToDo: release binaries and images
@@ -99,4 +99,4 @@ Targets:
 endef
 export MAKE_HELP_INFO
 help:
-	@echo "$$MAKE_HELP_INFO"
+	@echo "$${MAKE_HELP_INFO}"
