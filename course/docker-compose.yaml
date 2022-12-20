@@ -136,7 +136,7 @@ services:
       start_period: 10s
 
   course:
-    image: youngshawn/course:{IMAGE_TAG:-latest}
+    image: youngshawn/course:${IMG_TAG:-latest}
     networks:
       - network-course
     ports:
