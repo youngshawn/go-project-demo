@@ -37,15 +37,6 @@ func DatabaseInit() {
 	}
 }
 
-func DynamicDatabaseConfigReload() {
-	if dbType == "mysql" {
-		DynamicMySQLConfigReload()
-	}
-	if dbType == "sqlite" {
-		DynamicSqliteConfigReload()
-	}
-}
-
 func setupDatabase(db *gorm.DB) {
 	// get sql.DB
 	sqlDB, err := db.DB()
@@ -57,6 +48,15 @@ func setupDatabase(db *gorm.DB) {
 	sqlDB.SetMaxOpenConns(int(maxOpenConns))
 	sqlDB.SetConnMaxIdleTime(time.Second * time.Duration(connMaxIdleTime))
 	sqlDB.SetConnMaxLifetime(time.Second * time.Duration(connMaxLifetime))
+}
+
+func DynamicDatabaseConfigReload() {
+	if dbType == "mysql" {
+		DynamicMySQLConfigReload()
+	}
+	if dbType == "sqlite" {
+		DynamicSqliteConfigReload()
+	}
 }
 
 func GetDB() *gorm.DB {

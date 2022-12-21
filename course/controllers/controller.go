@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/youngshawn/go-project-demo/course/config"
+	"github.com/youngshawn/go-project-demo/course/models"
 )
 
 func initGinContext(ctx *gin.Context) {
@@ -16,7 +17,11 @@ func initGinContext(ctx *gin.Context) {
 func Status(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "application/json")
 	ctx.Writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(ctx.Writer).Encode(map[string]string{"status": "healthy"})
+	status, details := models.Healthcheck()
+	json.NewEncoder(ctx.Writer).Encode(map[string]interface{}{
+		"status":  status,
+		"details": details,
+	})
 }
 
 func Version(ctx *gin.Context) {
