@@ -1,5 +1,23 @@
 #!/bin/sh
 
+# apk add
+apk add jq
+
+# init and unseal
+if vault status | grep -q "Initialized.*false" ; then
+    # vault init
+    vault operator init -format json >/vault/file/vault-keys/keys.json
+fi
+if vault status | grep -q "Sealed.*true" ; then
+    # vault unseal
+    vault operator unseal $(cat /vault/file/vault-keys/keys.json | jq -r .unseal_keys_b64[1])
+    vault operator unseal $(cat /vault/file/vault-keys/keys.json | jq -r .unseal_keys_b64[2])
+    vault operator unseal $(cat /vault/file/vault-keys/keys.json | jq -r .unseal_keys_b64[3])
+fi
+
+# set root_token env
+export VAULT_TOKEN=$(cat /vault/file/vault-keys/keys.json | jq -r .root_token)
+
 # config database secret engine
 vault secrets enable database
 vault write database/config/mysql-course \
@@ -25,11 +43,11 @@ vault policy write course -<<EOF
 path "database/creds/course-all" {
   capabilities = [ "read" ]
 }
-# lease renew 相关权限
+# lease renew
 path "sys/leases/+/database/creds/course-all/*" {
   capabilities = [ "update" ]
 }
-# Transit相关权限
+# Transit
 path "transit/encrypt/course" {
    capabilities = [ "update" ]
 }

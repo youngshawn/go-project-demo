@@ -6,6 +6,8 @@ networks:
 volumes:
   mysql-data: {}
   etcd-data: {}
+  vault-data: {}
+  vault-keys: {}
 
 services:
 
@@ -70,7 +72,7 @@ services:
       - network-course
     volumes:
       - ./local-run-in-docker/init-scripts/config-etcd.sh:/config-etcd.sh:ro
-      - ./local-run-in-docker/remote-course.yaml:/remote-course.yaml:ro
+      - ./local-run-in-docker/init-scripts/remote-course.yaml:/remote-course.yaml:ro
     environment:
       - ETCDCTL_ENDPOINTS=http://etcd-course:2379
     entrypoint: ["/bin/sh", "/config-etcd.sh"]
@@ -84,11 +86,14 @@ services:
       - network-course
     ports:
       - "8200:8200"
+    volumes:
+      - ./local-run-in-docker/vault-config/vault-server.hcl:/vault/config/vault-server.hcl
+      - vault-data:/vault/config/file
     environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=myroot
       - VAULT_ADDR=http://127.0.0.1:8200
     cap_add:
       - IPC_LOCK
+    command: ["server"]
     healthcheck:
       test: ["CMD", "vault", "read", "sys/health"]
       interval: 30s
@@ -96,7 +101,7 @@ services:
       retries: 5
       start_period: 10s
 
-  course-vault-init:
+  vault-init:
     image: vault
     restart: "no"
     networks:
@@ -104,20 +109,20 @@ services:
     volumes:
       - ./local-run-in-docker/init-scripts/config-vault.sh:/vault/file/config-vault.sh:ro
       - ./local-run-in-docker/approle:/vault/file/approle:rw
+      - vault-keys:/vault/file/vault-keys:rw
     environment:
       - VAULT_ADDR=http://vault-server:8200
-      - VAULT_TOKEN=myroot
     entrypoint: ["sh", "/vault/file/config-vault.sh"]
     depends_on:
       vault-server:
-        condition: service_healthy
+        condition: service_started
     
-  vault-agent-course:
+  vault-agent:
     image: vault
     networks:
       - network-course
     volumes:
-      - ./local-run-in-docker/vault-agent.hcl:/vault/config/vault-agent.hcl:ro
+      - ./local-run-in-docker/vault-config/vault-agent.hcl:/vault/config/vault-agent.hcl:ro
       - ./local-run-in-docker/approle:/vault/config/approle:ro
       - ./local-run-in-docker/appconf:/vault/config/appconf:rw
     cap_add:
@@ -126,7 +131,7 @@ services:
     depends_on:
       vault-server:
         condition: service_healthy
-      course-vault-init:
+      vault-init:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "VAULT_ADDR=http://127.0.0.1:8201 vault read sys/health"]
@@ -153,9 +158,9 @@ services:
         condition: service_healthy
       vault-server:
         condition: service_healthy
-      vault-agent-course:
+      vault-agent:
         condition: service_healthy
-      course-vault-init:
+      vault-init:
         condition: service_completed_successfully
       course-etcd-init:
         condition: service_completed_successfully
