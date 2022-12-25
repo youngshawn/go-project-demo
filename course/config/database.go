@@ -37,17 +37,18 @@ func DatabaseInit() {
 	}
 }
 
-func setupDatabase(db *gorm.DB) {
+func setupDatabase(db *gorm.DB) error {
 	// get sql.DB
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	// setup connection pool
 	sqlDB.SetMaxIdleConns(int(maxIdleConns))
 	sqlDB.SetMaxOpenConns(int(maxOpenConns))
 	sqlDB.SetConnMaxIdleTime(time.Second * time.Duration(connMaxIdleTime))
 	sqlDB.SetConnMaxLifetime(time.Second * time.Duration(connMaxLifetime))
+	return nil
 }
 
 func DynamicDatabaseConfigReload() {

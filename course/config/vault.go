@@ -2,10 +2,12 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
+	"time"
 
 	vault "github.com/hashicorp/vault/api"
 	auth "github.com/hashicorp/vault/api/auth/approle"
@@ -48,11 +50,16 @@ func VaultInit() {
 		for {
 			vaultLoginResp, err := login(VaultClient)
 			if err != nil {
-				log.Fatalf("Unable to authenticate to Vault: %v", err)
+				//log.Fatalf("Unable to authenticate to Vault: %v", err)
+				log.Printf("Unable to authenticate to Vault: %v", err)
+				time.Sleep(time.Second * 10)
+				continue
 			}
 			tokenErr := renew(VaultClient, vaultLoginResp)
 			if tokenErr != nil {
-				log.Fatalf("Unable to start managing token lifecycle: %v", tokenErr)
+				//log.Fatalf("Unable to start managing token lifecycle: %v", tokenErr)
+				log.Printf("Unable to start managing token lifecycle: %v", tokenErr)
+				time.Sleep(time.Second * 10)
 			}
 		}
 	}()
@@ -62,11 +69,11 @@ func login(client *vault.Client) (*vault.Secret, error) {
 	// read role id from file
 	bytes, err := ioutil.ReadFile(vaultRoleIdFilePath)
 	if err != nil {
-		log.Fatalf("Error reading role ID file: %v", err)
+		return nil, fmt.Errorf("Error reading role ID file: %w", err)
 	}
 	roleID := strings.TrimSpace(string(bytes))
 	if len(roleID) == 0 {
-		log.Fatalln("Error: role ID file exists but read empty value")
+		return nil, errors.New("Error: role ID file exists but read empty value")
 	}
 
 	// prepare secret id

@@ -34,7 +34,7 @@ auto_auth {
 }
 
 template_config {
-  exit_on_retry_failure = true
+  exit_on_retry_failure = false
 }
 
 template {

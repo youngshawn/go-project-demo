@@ -37,7 +37,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 2
       start_period: 10s
 
   etcd-course:
@@ -62,7 +62,7 @@ services:
       test: ["CMD", "etcdctl", "endpoint", "health"]
       interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 2
       start_period: 10s
 
   course-etcd-init:
@@ -98,7 +98,7 @@ services:
       test: ["CMD", "vault", "read", "sys/health"]
       interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 2
       start_period: 10s
 
   vault-init:
@@ -137,7 +137,7 @@ services:
       test: ["CMD-SHELL", "VAULT_ADDR=http://127.0.0.1:8201 vault read sys/health"]
       interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 2
       start_period: 10s
 
   course:
@@ -168,7 +168,7 @@ services:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/status"]
       interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 2
       start_period: 10s
 
 

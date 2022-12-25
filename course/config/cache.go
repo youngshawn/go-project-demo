@@ -86,7 +86,7 @@ func connect_redis() *redis.Client {
 	})
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		log.Fatal(err)
+		log.Println("Redis ping failed:", err)
 	}
 
 	return rdb

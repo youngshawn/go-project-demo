@@ -16,8 +16,14 @@ func initGinContext(ctx *gin.Context) {
 
 func Status(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "application/json")
-	ctx.Writer.WriteHeader(http.StatusOK)
+
 	status, details := models.Healthcheck()
+	if status == "healthy" {
+		ctx.Writer.WriteHeader(http.StatusOK)
+	} else {
+		ctx.Writer.WriteHeader(http.StatusServiceUnavailable)
+	}
+
 	json.NewEncoder(ctx.Writer).Encode(map[string]interface{}{
 		"status":  status,
 		"details": details,

@@ -143,13 +143,13 @@ func initConfig() {
 		viper.AddRemoteProvider(remote_provider, remote_endpoint, remote_path)
 		viper.SetConfigType(remote_format)
 		if err := viper.ReadRemoteConfig(); err != nil {
-			log.Fatal(err)
+			log.Println("Read remote config failed:", err)
 		}
 	}
 
 	// Unmarshal viper map into config
 	if err := viper.Unmarshal(&config.Config); err != nil {
-		log.Fatal(err)
+		log.Fatal("Viper unmarshal failed:", err)
 	}
 
 	// watch local config-file
@@ -160,6 +160,8 @@ func initConfig() {
 			defer config.ViperLocker.Unlock()
 
 			log.Println("Local config file changed:", e.Name)
+			time.Sleep(time.Millisecond * 500)
+
 			if err := viper.ReadInConfig(); err != nil {
 				log.Println("Read local config file failed, error:", err)
 				return err
@@ -173,6 +175,7 @@ func initConfig() {
 				return err
 			}
 			log.Println("Unmarshal config succeed.")
+
 			return nil
 		}()
 

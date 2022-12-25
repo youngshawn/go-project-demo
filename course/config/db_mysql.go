@@ -40,23 +40,24 @@ func initMySQL() *gorm.DB {
 	mysqlOptions = Config.Database.MySQL.Options
 
 	// connect mysql
-	d := connectMySQL()
+	d, err := connectMySQL()
+	if err != nil {
+		log.Fatal("MySQL connect failed:", err)
+	}
 
 	// setup database
-	setupDatabase(d)
+	if err := setupDatabase(d); err != nil {
+		log.Fatal("MySQL setup failed:", err)
+	}
 
 	return d
 }
 
-func connectMySQL() *gorm.DB {
+func connectMySQL() (*gorm.DB, error) {
 	msyql_dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", mysqlUsername,
 		mysqlPassword, mysqlAddress, mysqlDBname, mysqlOptions)
 
-	d, err := gorm.Open(mysql.Open(msyql_dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	return d
+	return gorm.Open(mysql.Open(msyql_dsn), &gorm.Config{})
 }
 
 func DynamicMySQLConfigReload() {
@@ -64,6 +65,7 @@ func DynamicMySQLConfigReload() {
 	// get dynamic mysql creds
 	creds := GetDynamicMySQLCredsConfig()
 	if creds.Username == mysqlUsername && creds.Password == mysqlPassword {
+		log.Println("MySQL creds not changed, skip mysql reload.")
 		return
 	}
 
@@ -74,8 +76,15 @@ func DynamicMySQLConfigReload() {
 	mysqlPassword = creds.Password
 
 	// re-init mysql
-	d := connectMySQL()
-	setupDatabase(d)
+	d, err := connectMySQL()
+	if err != nil {
+		log.Println("MySQL connect failed:", err)
+		return
+	}
+	if err := setupDatabase(d); err != nil {
+		log.Println("MySQL setup failed:", err)
+		return
+	}
 
 	db = d
 }
